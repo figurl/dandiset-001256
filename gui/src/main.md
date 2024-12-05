@@ -12,31 +12,19 @@ Right now, this document shows session [sub-AA0304_ses-20210311T192013](https://
 
 ---
 
-This following video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames. The "Movie" tab allows you to watch the video as a continuous playback. _In the future, the stimulus will be shown._
+<div class="acquisition-view"></div>
 
-<div class="pupil-video"></div>
+**Upper left video**: This video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames. The "Movie" tab allows you to watch the video as a continuous playback. _In the future, the stimulus will be shown._
 
----
+**Upper right video**: Two-photon imaging video, which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
 
-This following is a plot showing the pupil diameter over time, derived from the video. Clicking on points in this plot will update other plots and images to display data corresponding to the selected time frame. _In the future, the stimulus will be shown._
+**Top plot**: Shows the pupil diameter over time, derived from the video. Clicking on points in this plot will update other plots and images to display data corresponding to the selected time frame. _In the future, the stimulus will be shown._
 
-<div class="pupil-radius-timeseries-plot"></div>
-
----
-
-This section shows the two-photon imaging video, which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
-
-<div class="two-photon-video"></div>
+**Bottom plot**: Displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
 
 ---
 
-This following plot displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
-
-<div class="roi-timeseries-plot"></div>
-
----
-
-This image segmentation corresponds to the two-photon video and identifies 37 regions of interest (ROIs).
+This following image segmentation corresponds to the two-photon video and identifies 37 regions of interest (ROIs).
 
 <div class="image-segmentation"></div>
 

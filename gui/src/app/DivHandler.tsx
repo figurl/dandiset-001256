@@ -1,7 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
 import "./App.css";
 
-import { FunctionComponent, useContext, useEffect, useMemo } from "react";
+import {
+  FunctionComponent,
+  PropsWithChildren,
+  ReactElement,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 import { useDocumentWidth } from "../DocumentWidthContext";
 import { useTimeseriesSelection } from "../neurosift-lib/contexts/context-timeseries-selection";
 import ImageSegmentationItemView from "../neurosift-lib/viewPlugins/ImageSegmentation/ImageSegmentationItemView";
@@ -9,7 +16,6 @@ import ImageSeriesItemView from "../neurosift-lib/viewPlugins/ImageSeries/ImageS
 import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
 import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 import { MainContext } from "./MainContext";
-import { useAnnotations } from "./useAnnotations";
 
 export interface DivHandlerProps {
   className?: string;
@@ -23,24 +29,12 @@ export const useDivHandler = (): DivHandlerComponent => {
   return useMemo(() => {
     return ({ className, props, children }: DivHandlerProps) => {
       switch (className) {
-        case "pupil-video": {
-          return <PupilVideoComponent />;
-        }
-
-        case "pupil-radius-timeseries-plot": {
-          return <PupilRadiusTimeseriesPlot />;
-        }
-
-        case "two-photon-video": {
-          return <TwoPhotonVideoComponent />;
+        case "acquisition-view": {
+          return <AcquisitionView />;
         }
 
         case "image-segmentation": {
           return <ImageSegmentationComponent />;
-        }
-
-        case "roi-timeseries-plot": {
-          return <RoiTimeseriesPlot />;
         }
 
         case "acquisition-selector": {
@@ -58,48 +52,110 @@ export const useDivHandler = (): DivHandlerComponent => {
   }, []);
 };
 
-const PupilVideoComponent: FunctionComponent = () => {
-  const width = useDocumentWidth();
-  const { acquisitionId } = useContext(MainContext)!;
+const Layout1: FunctionComponent<
+  PropsWithChildren<{ width: number; height: number }>
+> = ({ width, height, children }) => {
+  if (!children || children.length !== 4) {
+    throw new Error("Layout1 requires exactly 4 children");
+  }
+  if (!Array.isArray(children)) {
+    throw new Error("Layout1 requires children to be an array");
+  }
+  const H1 = height * 0.4;
+  const H2 = (height - H1) / 2;
+  const W1 = width / 2;
+  const W2 = width - W1;
+  /*
+    +-----------------+-----------------+
+    |     PupilVideo  | TwoPhotonVideo  |
+    |                 |                 |
+    +-----------------+-----------------+
+    | PupilRadiusTimeseriesPlot         |
+    |                                   |
+    +-----------------------------------+
+    | RoiTimeseriesPlot                 |
+    |                                   |
+    +-----------------------------------+
+    */
+  const C1: ReactElement = children[0];
+  const C2: ReactElement = children[1];
+  const C3: ReactElement = children[2];
+  const C4: ReactElement = children[3];
+
   return (
-    <div style={{ position: "relative", width, height: 400 }}>
+    <div style={{ position: "relative", width, height }}>
+      <div
+        style={{ position: "absolute", width: W1, height: H1, top: 0, left: 0 }}
+      >
+        <C1.type key={C1.key} {...C1.props} width={W1} height={H1} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          width: W2,
+          height: H1,
+          top: 0,
+          left: W1,
+        }}
+      >
+        <C2.type key={C2.key} {...C2.props} width={W2} height={H1} />
+      </div>
+      <div
+        style={{ position: "absolute", width, height: H2, top: H1, left: 0 }}
+      >
+        <C3.type key={C3.key} {...C3.props} width={width} height={H2} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          width,
+          height: H2,
+          top: H1 + H2,
+          left: 0,
+        }}
+      >
+        <C4.type key={C4.key} {...C4.props} width={width} height={H2} />
+      </div>
+    </div>
+  );
+};
+
+const AcquisitionView: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  const { acquisitionId, annotations } = useContext(MainContext)!;
+  return (
+    <Layout1 width={width} height={800}>
+      {/* PupilVideo */}
       <ImageSeriesItemView
-        width={width}
+        width={0}
         height={400}
         path={`/processing/behavior/pupil_video_${acquisitionId}`}
         initialBrightnessFactor={2}
       />
-    </div>
-  );
-};
-
-const PupilRadiusTimeseriesPlot: FunctionComponent = () => {
-  const width = useDocumentWidth();
-  const { acquisitionId, annotations } = useContext(MainContext)!;
-  return (
-    <div style={{ position: "relative", width, height: 400 }}>
-      <NeurodataTimeSeriesItemView
-        width={width}
-        height={400}
-        path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
-        annotations={annotations}
-      />
-    </div>
-  );
-};
-
-const TwoPhotonVideoComponent: FunctionComponent = () => {
-  const width = useDocumentWidth();
-  const { acquisitionId } = useContext(MainContext)!;
-  return (
-    <div style={{ position: "relative", width, height: 400 }}>
+      {/* TwoPhotonVideo */}
       <TwoPhotonSeriesItemView
-        width={width}
-        height={400}
+        width={0}
+        height={0}
         path={`/acquisition/TwoPhotonSeries_${acquisitionId}`}
         initialBrightnessFactor={2}
       />
-    </div>
+      {/* PupilRadiusTimeseriesPlot */}
+      <NeurodataTimeSeriesItemView
+        width={0}
+        height={0}
+        path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
+        annotations={annotations}
+      />
+      {/* RoiTimeseriesPlot */}
+      <NeurodataTimeSeriesItemView
+        width={width}
+        height={0}
+        path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
+        initialShowAllChannels={true}
+        initialChannelSeparation={0}
+        annotations={annotations}
+      />
+    </Layout1>
   );
 };
 
@@ -111,23 +167,6 @@ const ImageSegmentationComponent: FunctionComponent = () => {
         width={width}
         height={400}
         path="/processing/ophys/ImageSegmentation"
-      />
-    </div>
-  );
-};
-
-const RoiTimeseriesPlot: FunctionComponent = () => {
-  const width = useDocumentWidth();
-  const { acquisitionId, annotations } = useContext(MainContext)!;
-  return (
-    <div style={{ position: "relative", width, height: 400 }}>
-      <NeurodataTimeSeriesItemView
-        width={width}
-        height={400}
-        path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={true}
-        initialChannelSeparation={0}
-        annotations={annotations}
       />
     </div>
   );
