@@ -1,7 +1,7 @@
 import { useWindowDimensions } from "@fi-sci/misc";
 import "./App.css";
 import mainMdTemplate from "./main.md?raw";
-import Markdown from "./Markdown";
+import Markdown from "../Markdown";
 
 import nunjucks from "nunjucks";
 import {
@@ -14,17 +14,17 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ProvideDocumentWidth, useDocumentWidth } from "./DocumentWidthContext";
+import { ProvideDocumentWidth, useDocumentWidth } from "../DocumentWidthContext";
 import {
   SetupTimeseriesSelection,
   useTimeseriesSelection,
-} from "./neurosift-lib/contexts/context-timeseries-selection";
-import { Route, RouteContext } from "./neurosift-lib/contexts/useRoute";
-import ProvideNwbFile from "./neurosift-lib/misc/ProvideNwbFile";
-import ImageSegmentationItemView from "./neurosift-lib/viewPlugins/ImageSegmentation/ImageSegmentationItemView";
-import ImageSeriesItemView from "./neurosift-lib/viewPlugins/ImageSeries/ImageSeriesItemView";
-import NeurodataTimeSeriesItemView from "./neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
-import TwoPhotonSeriesItemView from "./neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
+} from "../neurosift-lib/contexts/context-timeseries-selection";
+import { Route, RouteContext } from "../neurosift-lib/contexts/useRoute";
+import ProvideNwbFile from "../neurosift-lib/misc/ProvideNwbFile";
+import ImageSegmentationItemView from "../neurosift-lib/viewPlugins/ImageSegmentation/ImageSegmentationItemView";
+import ImageSeriesItemView from "../neurosift-lib/viewPlugins/ImageSeries/ImageSeriesItemView";
+import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
+import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 
 nunjucks.configure({ autoescape: false });
 
