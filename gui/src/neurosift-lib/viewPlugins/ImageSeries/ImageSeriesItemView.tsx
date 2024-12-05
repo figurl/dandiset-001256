@@ -18,7 +18,7 @@ const ImageSeriesItemView: FunctionComponent<Props> = ({
   width,
   height,
   path,
-  initialBrightnessFactor
+  initialBrightnessFactor,
 }) => {
   return (
     <TwoPhotonSeriesItemView

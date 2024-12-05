@@ -78,7 +78,7 @@ const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
   height,
   path,
   rgb,
-  initialBrightnessFactor
+  initialBrightnessFactor,
 }) => {
   // const nwbFile = useNwbFile();
   // const [useMp4, setUseMp4] = useState<boolean | undefined>(undefined);
@@ -141,7 +141,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
   height,
   path,
   rgb,
-  initialBrightnessFactor
+  initialBrightnessFactor,
 }) => {
   const nwbFile = useNwbFile();
   if (!nwbFile) throw Error("Unexpected: nwbFile is null");
