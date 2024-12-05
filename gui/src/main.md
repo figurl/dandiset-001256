@@ -1,45 +1,44 @@
 # Dandiset 001256
 
-Here we describe what this Dandiset is all about.
+**-- Work in progress --**
+
+[Dandiset 001256](https://dandiarchive.org/dandiset/001256/0.241120.2150) contains data for analyses presented in Cody et al. (2024): *Cortical Zinc Signaling Is Necessary for Changes in Mouse Pupil Diameter That Are Evoked by Background Sounds with Different Contrasts* (https://doi.org/10.1523/JNEUROSCI.0939-23.2024). This document (work in progress) is an interactive view of the data for this study.
 
 ---
 
-Here we describe that we are looking at a particular acquisition for a particular [subject/session](https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/&dandisetId=001256&dandisetVersion=0.241120.2150).
+Right now, this document shows session [sub-AA0304_ses-20210311T192013](https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/&dandisetId=001256&dandisetVersion=0.241120.2150), but in the future, you will be able to select from the 30 sessions in this dataset. The session contains a number of acquisitions.
+
+<div class="acquisition-selector"></div>
 
 ---
 
-Here we explain that this is the video of the mouse eye. You can use range slider to control the brightness/contrast and the arrows to advance through the frames. You can also click on the Movie tab to watch the video.
+This following video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames. The "Movie" tab allows you to watch the video as a continuous playback. *In the future, the stimulus will be shown.*
 
 <div class="pupil-video"></div>
 
 ---
 
-Explain that this is a plot of the pupil diameter over time. (Does it agree with the video?)
-
-You can click on points in the plot and all the other plots and images will update to show the corresponding data.
+This following is a plot showing the pupil diameter over time, derived from the video. Clicking on points in this plot will update other plots and images to display data corresponding to the selected time frame. *In the future, the stimulus will be shown.*
 
 <div class="pupil-radius-timeseries-plot"></div>
 
 ---
 
-Explain that this is the two photon video. In the future we'll remove the unnecessary controls.
+This section shows the two-photon imaging video, which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations. *In the future, the stimulus will be shown.*
 
 <div class="two-photon-video"></div>
 
 ---
 
-Explain that this is the image segmentation of the two photon video (does this match? does it need to be aligned somehow?). There are 37 regions of interest (ROIs). In the future, we'll want to be able to somehow identify the IDs of the ROIs.
-
-<div class="image-segmentation"></div>
-
----
-
-Explain that this is the ROI response series. (Does this match the video and the segmentation?) In the future we'll want to be identify the IDs of the ROIs.
+This floowing plot displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. *In the future, the stimulus will be shown.*
 
 <div class="roi-timeseries-plot"></div>
 
 ---
 
-Do we want to then focus on a particular ROI and show things in a single plot? What exactly are we expecting to see?
+This image segmentation corresponds to the two-photon video and identifies 37 regions of interest (ROIs).
+
+<div class="image-segmentation"></div>
 
 ---
+

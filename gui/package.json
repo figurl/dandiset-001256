@@ -3,11 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "prettier": {
+    "tabWidth": 2,
+    "semi": true,
+    "experimentalTernaries": false,
+    "bracketSameLine": false,
+    "arrowParens": "always"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
