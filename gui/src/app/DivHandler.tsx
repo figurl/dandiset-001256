@@ -131,6 +131,7 @@ const AcquisitionView: FunctionComponent = () => {
         height={400}
         path={`/processing/behavior/pupil_video_${acquisitionId}`}
         initialBrightnessFactor={2}
+        showOrientationControls={false}
       />
       {/* TwoPhotonVideo */}
       <TwoPhotonSeriesItemView
@@ -138,6 +139,7 @@ const AcquisitionView: FunctionComponent = () => {
         height={0}
         path={`/acquisition/TwoPhotonSeries_${acquisitionId}`}
         initialBrightnessFactor={2}
+        showOrientationControls={false}
       />
       {/* PupilRadiusTimeseriesPlot */}
       <NeurodataTimeSeriesItemView
