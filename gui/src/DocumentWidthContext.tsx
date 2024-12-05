@@ -7,16 +7,15 @@ that the markdown is not rerendered every time the width changes.
 
 const DocumentWidthContext = React.createContext<number | undefined>(undefined);
 
-export const ProvideDocumentWidth: FunctionComponent<PropsWithChildren<{ width: number }>> = ({
-  width,
-  children,
-}) => {
+export const ProvideDocumentWidth: FunctionComponent<
+  PropsWithChildren<{ width: number }>
+> = ({ width, children }) => {
   return (
     <DocumentWidthContext.Provider value={width}>
       {children}
     </DocumentWidthContext.Provider>
   );
-}
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useDocumentWidth = () => {
@@ -25,4 +24,4 @@ export const useDocumentWidth = () => {
     return 600;
   }
   return w;
-}
+};

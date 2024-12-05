@@ -182,9 +182,9 @@ export const useTimeseriesSelection = () => {
   );
   const resetTimeseriesSelection = useCallback(() => {
     timeseriesSelectionDispatch({
-      type: 'resetTimeseriesSelection'
+      type: "resetTimeseriesSelection",
     });
-  } , [timeseriesSelectionDispatch]);
+  }, [timeseriesSelectionDispatch]);
   const timeForFraction = useCallback(
     (fraction: number) => {
       const window =
@@ -238,7 +238,7 @@ export const useTimeseriesSelection = () => {
     setCurrentTime,
     setCurrentTimeFraction,
     timeForFraction,
-    resetTimeseriesSelection
+    resetTimeseriesSelection,
   };
 };
 
@@ -349,7 +349,7 @@ export const timeseriesSelectionReducer = (
   } else if (action.type === "setSelectedElectrodeIds") {
     return setSelectedElectrodeIds(state, action);
   } else if (action.type === "resetTimeseriesSelection") {
-    return {...defaultTimeseriesSelection};
+    return { ...defaultTimeseriesSelection };
   } else {
     console.warn(
       `Unhandled timeseries selection action ${action.type} in timeseriesSelectionReducer.`,
@@ -529,7 +529,7 @@ const zoomTime = (
   const anchorTimeSec =
     action.hoverTimeSec !== undefined
       ? action.hoverTimeSec
-      : (state.currentTimeSec ?? state.visibleStartTimeSec + currentWindow / 2);
+      : state.currentTimeSec ?? state.visibleStartTimeSec + currentWindow / 2;
 
   // Find the distance of the focus from the window start, as a fraction of the total window length.
   const anchorTimeFrac =
