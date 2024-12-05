@@ -9,25 +9,25 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ToolbarItem } from "../../../misc/ViewToolbar/Toolbars";
-import TimeScrollView2, {
-  useTimeScrollView2,
-} from "../../../timeseries/component-time-scroll-view-2/TimeScrollView2";
 import {
   useTimeRange,
   useTimeseriesSelectionInitialization,
 } from "../../../contexts/context-timeseries-selection";
 import { useNwbFile } from "../../../misc/NwbFileContext";
+import { ToolbarItem } from "../../../misc/ViewToolbar/Toolbars";
 import { useDataset } from "../../../misc/hooks";
+import { timeSelectionBarHeight } from "../../../timeseries/TimeseriesSelectionBar";
+import TimeScrollView2, {
+  useTimeScrollView2,
+} from "../../../timeseries/component-time-scroll-view-2/TimeScrollView2";
+import { SpikeTrainsClient } from "../../Units/DirectRasterPlotUnitsItemView";
+import { getUnitColor } from "../../Units/view-units-table";
+import TimeseriesDatasetChunkingClient from "./TimeseriesDatasetChunkingClient";
 import {
   TimeseriesTimestampsClient,
   useTimeseriesTimestampsClient,
 } from "./TimeseriesTimestampsClient";
-import TimeseriesDatasetChunkingClient from "./TimeseriesDatasetChunkingClient";
-import { timeSelectionBarHeight } from "../../../timeseries/TimeseriesSelectionBar";
 import { DataSeries, Opts, SpikeTrainsDataForWorker } from "./WorkerTypes";
-import { SpikeTrainsClient } from "../../Units/DirectRasterPlotUnitsItemView";
-import { getUnitColor } from "../../Units/view-units-table";
 
 type Props = {
   width: number;
@@ -39,6 +39,16 @@ type Props = {
   applyConversion?: boolean;
   spikeTrainsClient?: SpikeTrainsClient;
   startZoomedOut?: boolean;
+  annotations?: TimeseriesAnnotation[];
+};
+
+export type TimeseriesAnnotation = {
+  type: "interval";
+  data: {
+    label: string;
+    startSec: number;
+    endSec: number;
+  };
 };
 
 const gridlineOpts = {
@@ -58,6 +68,7 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
   applyConversion,
   spikeTrainsClient,
   startZoomedOut,
+  annotations,
 }) => {
   const nwbFile = useNwbFile();
   if (!nwbFile)
@@ -144,6 +155,7 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
       numVisibleChannels={numVisibleChannels}
       yLabel={yLabel}
       maxVisibleDuration={maxVisibleDuration}
+      annotations={annotations}
     />
   );
 };
@@ -171,6 +183,7 @@ type NwbTimeseriesViewChildProps = {
   numVisibleChannels?: number;
   yLabel: string;
   maxVisibleDuration?: number;
+  annotations?: TimeseriesAnnotation[];
 };
 
 export const NwbTimeseriesViewChild: FunctionComponent<
@@ -189,6 +202,7 @@ export const NwbTimeseriesViewChild: FunctionComponent<
   datasetChunkingClient,
   yLabel,
   maxVisibleDuration,
+  annotations,
 }) => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const [canvasElement, setCanvasElement] = useState<
@@ -698,6 +712,15 @@ export const NwbTimeseriesViewChild: FunctionComponent<
     },
     [visibleStartTimeSec, visibleEndTimeSec],
   );
+
+  // send annotations to worker
+  useEffect(() => {
+    if (!worker) return;
+    if (!annotations) return;
+    worker.postMessage({
+      annotations,
+    });
+  }, [worker, annotations]);
 
   if (visibleStartTimeSec === undefined) {
     return <div>visibleStartTimeSec is undefined</div>;

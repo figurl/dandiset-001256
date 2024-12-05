@@ -9,6 +9,7 @@ import ImageSeriesItemView from "../neurosift-lib/viewPlugins/ImageSeries/ImageS
 import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
 import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 import { MainContext } from "./MainContext";
+import { useAnnotations } from "./useAnnotations";
 
 export interface DivHandlerProps {
   className?: string;
@@ -74,13 +75,14 @@ const PupilVideoComponent: FunctionComponent = () => {
 
 const PupilRadiusTimeseriesPlot: FunctionComponent = () => {
   const width = useDocumentWidth();
-  const { acquisitionId } = useContext(MainContext)!;
+  const { acquisitionId, annotations } = useContext(MainContext)!;
   return (
     <div style={{ position: "relative", width, height: 400 }}>
       <NeurodataTimeSeriesItemView
         width={width}
         height={400}
         path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
+        annotations={annotations}
       />
     </div>
   );
@@ -116,7 +118,7 @@ const ImageSegmentationComponent: FunctionComponent = () => {
 
 const RoiTimeseriesPlot: FunctionComponent = () => {
   const width = useDocumentWidth();
-  const { acquisitionId } = useContext(MainContext)!;
+  const { acquisitionId, annotations } = useContext(MainContext)!;
   return (
     <div style={{ position: "relative", width, height: 400 }}>
       <NeurodataTimeSeriesItemView
@@ -125,6 +127,7 @@ const RoiTimeseriesPlot: FunctionComponent = () => {
         path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
         initialShowAllChannels={true}
         initialChannelSeparation={0}
+        annotations={annotations}
       />
     </div>
   );

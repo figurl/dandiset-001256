@@ -30,7 +30,7 @@ This section shows the two-photon imaging video, which records calcium activity 
 
 ---
 
-This floowing plot displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
+This following plot displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
 
 <div class="roi-timeseries-plot"></div>
 
