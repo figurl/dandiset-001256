@@ -23,6 +23,8 @@ type Props = {
   initialChannelSeparation?: number;
   annotations?: TimeseriesAnnotation[];
   yLabel?: string;
+  showTimeseriesToolbar?: boolean;
+  showTimeseriesNavbar?: boolean;
 };
 
 const tabs = [
@@ -96,6 +98,8 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
   initialChannelSeparation,
   annotations,
   yLabel,
+  showTimeseriesToolbar,
+  showTimeseriesNavbar,
 }) => {
   const bottomToolBarHeight = 30;
   const totalNumChannels = useTotalNumChannelsForTimeSeries(path);
@@ -148,6 +152,8 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
           startZoomedOut={true}
           annotations={annotations}
           yLabel={yLabel}
+          showTimeseriesToolbar={showTimeseriesToolbar}
+          showTimeseriesNavbar={showTimeseriesNavbar}
         />
       </div>
       <div

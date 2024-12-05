@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import ModalWindow, { useModalWindow } from "@fi-sci/modal-window";
 import { QuestionMark } from "@mui/icons-material";
 import {
@@ -41,6 +40,8 @@ type Props = {
   startZoomedOut?: boolean;
   annotations?: TimeseriesAnnotation[];
   yLabel?: string;
+  showTimeseriesToolbar?: boolean;
+  showTimeseriesNavbar?: boolean;
 };
 
 export type TimeseriesAnnotation = {
@@ -57,8 +58,6 @@ const gridlineOpts = {
   hideY: true,
 };
 
-const hideToolbar = false;
-
 const NwbTimeseriesView: FunctionComponent<Props> = ({
   width,
   height,
@@ -71,6 +70,8 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
   startZoomedOut,
   annotations,
   yLabel,
+  showTimeseriesToolbar,
+  showTimeseriesNavbar,
 }) => {
   const nwbFile = useNwbFile();
   if (!nwbFile)
@@ -157,6 +158,8 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
       yLabel={yLabel0}
       maxVisibleDuration={maxVisibleDuration}
       annotations={annotations}
+      showTimeseriesToolbar={showTimeseriesToolbar}
+      showTimeseriesNavbar={showTimeseriesNavbar}
     />
   );
 };
@@ -185,6 +188,8 @@ type NwbTimeseriesViewChildProps = {
   yLabel: string;
   maxVisibleDuration?: number;
   annotations?: TimeseriesAnnotation[];
+  showTimeseriesToolbar?: boolean;
+  showTimeseriesNavbar?: boolean;
 };
 
 export const NwbTimeseriesViewChild: FunctionComponent<
@@ -204,6 +209,8 @@ export const NwbTimeseriesViewChild: FunctionComponent<
   yLabel,
   maxVisibleDuration,
   annotations,
+  showTimeseriesToolbar,
+  showTimeseriesNavbar,
 }) => {
   const [worker, setWorker] = useState<Worker | null>(null);
   const [canvasElement, setCanvasElement] = useState<
@@ -222,6 +229,8 @@ export const NwbTimeseriesViewChild: FunctionComponent<
     ? timeseriesTimestampsClient.endTime!
     : undefined;
   useTimeseriesSelectionInitialization(startTime, endTime);
+
+  const hideToolbar = false; // this is tricky... hideToolbar removes the space for the toolbar, whereas showTimeseriesToolbar=false just hides the toolbar
 
   const { canvasWidth, canvasHeight, margins } = useTimeScrollView2({
     width,
@@ -752,9 +761,10 @@ export const NwbTimeseriesViewChild: FunctionComponent<
           gridlineOpts={gridlineOpts}
           yAxisInfo={yAxisInfo}
           hideToolbar={hideToolbar}
+          showTimeseriesToolbar={showTimeseriesToolbar} // see comment above
           onKeyDown={handleKeyDown}
           additionalToolbarItems={additionalToolbarItems}
-          showTimeSelectionBar={true}
+          showTimeSelectionBar={showTimeseriesNavbar !== false}
         />
       </div>
       {loading && !zoomInRequired && (

@@ -584,7 +584,7 @@ const drawAnnotations = async (o: {
         // draw text at the top of the rectangle
         canvasContext.fillStyle = `black`;
         const text = aa.data.label;
-        canvasContext.font = "12px Arial";
+        canvasContext.font = "11px Arial";
         canvasContext.textAlign = "center";
         canvasContext.textBaseline = "bottom";
         canvasContext.fillText(text, R.x + R.w / 2, R.y);
