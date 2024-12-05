@@ -55,7 +55,7 @@ export const useDivHandler = (): DivHandlerComponent => {
 const Layout1: FunctionComponent<
   PropsWithChildren<{ width: number; height: number }>
 > = ({ width, height, children }) => {
-  if (!children || children.length !== 4) {
+  if (!children) {
     throw new Error("Layout1 requires exactly 4 children");
   }
   if (!Array.isArray(children)) {
