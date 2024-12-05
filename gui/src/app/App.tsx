@@ -9,12 +9,10 @@ import {
   PropsWithChildren,
   useCallback,
   useMemo,
-  useState
+  useState,
 } from "react";
 import { ProvideDocumentWidth } from "../DocumentWidthContext";
-import {
-  SetupTimeseriesSelection
-} from "../neurosift-lib/contexts/context-timeseries-selection";
+import { SetupTimeseriesSelection } from "../neurosift-lib/contexts/context-timeseries-selection";
 import { Route, RouteContext } from "../neurosift-lib/contexts/useRoute";
 import ProvideNwbFile from "../neurosift-lib/misc/ProvideNwbFile";
 import { MainContext } from "./MainContext";
