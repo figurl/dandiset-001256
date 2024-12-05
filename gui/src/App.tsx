@@ -12,6 +12,7 @@ import { Route, RouteContext } from "./neurosift-lib/contexts/useRoute";
 import NeurodataTimeSeriesItemView from "./neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
 import TwoPhotonSeriesItemView from "./neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 import ImageSegmentationItemView from "./neurosift-lib/viewPlugins/ImageSegmentation/ImageSegmentationItemView";
+import { ProvideDocumentWidth, useDocumentWidth } from "./DocumentWidthContext";
 
 nunjucks.configure({ autoescape: false });
 
@@ -24,7 +25,7 @@ function App() {
   const mainAreaWidth = Math.min(width - 30, 1200);
   const offsetLeft = (width - mainAreaWidth) / 2;
   const [okayToViewSmallScreen, setOkayToViewSmallScreen] = useState(false);
-  const divHandler = useDivHandler({ mainAreaWidth });
+  const divHandler = useDivHandler({});
   if (width < 800 && !okayToViewSmallScreen) {
     return <SmallScreenMessage onOkay={() => setOkayToViewSmallScreen(true)} />;
   }
@@ -47,11 +48,13 @@ function App() {
         <DummyRouteProvider>
           <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>
             <SetupTimeseriesSelection>
-              <Markdown
-                source={mainMd}
-                linkTarget="_self"
-                divHandler={divHandler}
-              />
+              <ProvideDocumentWidth width={mainAreaWidth}>
+                <Markdown
+                  source={mainMd}
+                  linkTarget="_self"
+                  divHandler={divHandler}
+                />
+              </ProvideDocumentWidth>
             </SetupTimeseriesSelection>
           </ProvideNwbFile>
         </DummyRouteProvider>
@@ -89,8 +92,9 @@ const SmallScreenMessage: FunctionComponent<{ onOkay: () => void }> = ({
   );
 };
 
-interface DivHandlerConfig {
-  mainAreaWidth: number;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+type DivHandlerConfig = {
+  //
 }
 
 interface DivHandlerProps {
@@ -105,93 +109,129 @@ const nwbUrl =
   "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/";
 const dandisetId = "001256";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const useDivHandler = (config: DivHandlerConfig): DivHandlerComponent => {
-  const { mainAreaWidth } = config;
+  return useMemo(() => {
+    return ({ className, props, children }: DivHandlerProps) => {
+      switch (className) {
+        case "pupil-video": {
+          return (
+            <PupilVideoComponent />
+          );
+        }
 
-  return ({ className, props, children }: DivHandlerProps) => {
-    switch (className) {
-      case "pupil-video": {
-        return (
-          <div
-            style={{ position: "relative", width: mainAreaWidth, height: 400 }}
-          >
-            <ImageSeriesItemView
-              width={mainAreaWidth}
-              height={400}
-              path="/processing/behavior/pupil_video_000"
-              initialBrightnessFactor={2}
-            />
-          </div>
-        );
+        case "pupil-radius-timeseries-plot": {
+          return (
+            <PupilRadiusTimeseriesPlot />
+          )
+        }
+
+        case "two-photon-video": {
+          return (
+            <TwoPhotonVideoComponent />
+          )
+        }
+
+        case "image-segmentation": {
+          return (
+            <ImageSegmentationComponent />
+          )
+        }
+
+        case "roi-timeseries-plot": {
+          return (
+            <RoiTimeseriesPlot />
+          )
+        }
+
+        default:
+          return (
+            <div className={className} {...props}>
+              {children}
+            </div>
+          );
       }
-
-      case "pupil-radius-timeseries-plot": {
-        return (
-          <div
-            style={{ position: "relative", width: mainAreaWidth, height: 400 }}
-          >
-            <NeurodataTimeSeriesItemView
-              width={mainAreaWidth}
-              height={400}
-              path="/processing/behavior/PupilTracking/pupil_radius_000"
-            />
-          </div>
-        )
-      }
-
-      case "two-photon-video": {
-        return (
-          <div
-            style={{ position: "relative", width: mainAreaWidth, height: 400 }}
-          >
-            <TwoPhotonSeriesItemView
-              width={mainAreaWidth}
-              height={400}
-              path="/acquisition/TwoPhotonSeries_000"
-              initialBrightnessFactor={2}
-            />
-          </div>
-        )
-      }
-
-      case "image-segmentation": {
-        return (
-          <div
-            style={{ position: "relative", width: mainAreaWidth, height: 400 }}
-          >
-            <ImageSegmentationItemView
-              width={mainAreaWidth}
-              height={400}
-              path="/processing/ophys/ImageSegmentation"
-            />
-          </div>
-        )
-      }
-
-      case "roi-timeseries-plot": {
-        return (
-          <div
-            style={{ position: "relative", width: mainAreaWidth, height: 400 }}
-          >
-            <NeurodataTimeSeriesItemView
-              width={mainAreaWidth}
-              height={400}
-              path="/processing/ophys/Fluorescence/RoiResponseSeries_000"
-              initialShowAllChannels={true}
-              initialChannelSeparation={0}
-            />
-          </div>
-        )
-      }
-
-      default:
-        return (
-          <div className={className} {...props}>
-            {children}
-          </div>
-        );
-    }
-  };
+    };
+  }, []);
 };
+
+const PupilVideoComponent: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  return (
+    <div
+      style={{ position: "relative", width, height: 400 }}
+    >
+      <ImageSeriesItemView
+        width={width}
+        height={400}
+        path="/processing/behavior/pupil_video_000"
+        initialBrightnessFactor={2}
+      />
+    </div>
+  )
+}
+
+const PupilRadiusTimeseriesPlot: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  return (
+    <div
+      style={{ position: "relative", width, height: 400 }}
+    >
+      <NeurodataTimeSeriesItemView
+        width={width}
+        height={400}
+        path="/processing/behavior/PupilTracking/pupil_radius_000"
+      />
+    </div>
+  )
+}
+
+const TwoPhotonVideoComponent: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  return (
+    <div
+      style={{ position: "relative", width, height: 400 }}
+    >
+      <TwoPhotonSeriesItemView
+        width={width}
+        height={400}
+        path="/acquisition/TwoPhotonSeries_000"
+        initialBrightnessFactor={2}
+      />
+    </div>
+  )
+}
+
+const ImageSegmentationComponent: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  return (
+    <div
+      style={{ position: "relative", width, height: 400 }}
+    >
+      <ImageSegmentationItemView
+        width={width}
+        height={400}
+        path="/processing/ophys/ImageSegmentation"
+      />
+    </div>
+  )
+}
+
+const RoiTimeseriesPlot: FunctionComponent = () => {
+  const width = useDocumentWidth();
+  return (
+    <div
+      style={{ position: "relative", width, height: 400 }}
+    >
+      <NeurodataTimeSeriesItemView
+        width={width}
+        height={400}
+        path="/processing/ophys/Fluorescence/RoiResponseSeries_000"
+        initialShowAllChannels={true}
+        initialChannelSeparation={0}
+      />
+    </div>
+  )
+}
 
 export default App;
