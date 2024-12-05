@@ -40,6 +40,7 @@ type Props = {
   spikeTrainsClient?: SpikeTrainsClient;
   startZoomedOut?: boolean;
   annotations?: TimeseriesAnnotation[];
+  yLabel?: string;
 };
 
 export type TimeseriesAnnotation = {
@@ -69,6 +70,7 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
   spikeTrainsClient,
   startZoomedOut,
   annotations,
+  yLabel,
 }) => {
   const nwbFile = useNwbFile();
   if (!nwbFile)
@@ -116,11 +118,10 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
     autoChannelSeparation,
     applyConversion,
   ]);
-  const yLabel = useMemo(() => {
+  const yLabel0 = useMemo(() => {
     if (!dataset) return "";
-    const yLabel = applyConversion ? dataset.attrs["unit"] || "" : "";
-    return yLabel;
-  }, [dataset, applyConversion]);
+    return yLabel ? yLabel : applyConversion ? dataset.attrs["unit"] || "" : "";
+  }, [dataset, applyConversion, yLabel]);
 
   const maxVisibleDuration = useMemo(
     () =>
@@ -153,7 +154,7 @@ const NwbTimeseriesView: FunctionComponent<Props> = ({
       timeseriesTimestampsClient={timeseriesTimestampsClient}
       datasetChunkingClient={datasetChunkingClient!}
       numVisibleChannels={numVisibleChannels}
-      yLabel={yLabel}
+      yLabel={yLabel0}
       maxVisibleDuration={maxVisibleDuration}
       annotations={annotations}
     />

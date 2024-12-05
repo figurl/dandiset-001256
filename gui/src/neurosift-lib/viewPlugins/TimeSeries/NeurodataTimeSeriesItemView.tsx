@@ -22,6 +22,7 @@ type Props = {
   initialShowAllChannels?: boolean;
   initialChannelSeparation?: number;
   annotations?: TimeseriesAnnotation[];
+  yLabel?: string;
 };
 
 const tabs = [
@@ -94,6 +95,7 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
   initialShowAllChannels,
   initialChannelSeparation,
   annotations,
+  yLabel,
 }) => {
   const bottomToolBarHeight = 30;
   const totalNumChannels = useTotalNumChannelsForTimeSeries(path);
@@ -145,6 +147,7 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
           spikeTrainsClient={spikeTrainsClient}
           startZoomedOut={true}
           annotations={annotations}
+          yLabel={yLabel}
         />
       </div>
       <div

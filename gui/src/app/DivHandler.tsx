@@ -145,6 +145,7 @@ const AcquisitionView: FunctionComponent = () => {
         height={0}
         path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
         annotations={annotations}
+        yLabel="Pupil radius"
       />
       {/* RoiTimeseriesPlot */}
       <NeurodataTimeSeriesItemView
@@ -154,6 +155,7 @@ const AcquisitionView: FunctionComponent = () => {
         initialShowAllChannels={true}
         initialChannelSeparation={0}
         annotations={annotations}
+        yLabel="Fluorescence"
       />
     </Layout1>
   );
