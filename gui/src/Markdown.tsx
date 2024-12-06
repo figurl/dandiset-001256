@@ -118,7 +118,7 @@ const Markdown: FunctionComponent<Props> = ({
       },
       img: ({ node, src, ...props }) => {
         if (imgHandler) {
-          return imgHandler({ src, props });
+          return imgHandler({ src: src || "", props });
         } else {
           return <img src={src} {...props} />;
         }
