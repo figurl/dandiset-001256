@@ -18,6 +18,8 @@ import ProvideNwbFile from "../neurosift-lib/misc/ProvideNwbFile";
 import { MainContext } from "./MainContext";
 import { useDivHandler } from "./DivHandler";
 import { useAnnotations } from "./useAnnotations";
+import { BrowserRouter, useLocation } from "react-router-dom";
+import ChatPage from "./ChatPage/ChatPage";
 
 nunjucks.configure({ autoescape: false });
 
@@ -30,6 +32,26 @@ const nwbUrl =
 const dandisetId = "001256";
 
 const App: FunctionComponent = () => {
+  return (
+    <BrowserRouter>
+      <AppChild0 />
+    </BrowserRouter>
+  )
+};
+
+const AppChild0: FunctionComponent = () => {
+  const location = useLocation();
+  const queryParameters = new URLSearchParams(location.search);
+  const p = queryParameters.get("p");
+  const { width, height } = useWindowDimensions();
+  if (p === '/chat') {
+    return (
+      <ChatPage
+        width={width}
+        height={height}
+      />
+    )
+  }
   return (
     <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>
       <AppChild1 />

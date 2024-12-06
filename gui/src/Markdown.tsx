@@ -20,13 +20,13 @@ type Props = {
   onSpecialLinkClick?: (link: string) => void;
   onRunCode?: (code: string) => void;
   runCodeReady?: boolean;
-  files?: { [name: string]: string };
   linkTarget?: string;
   divHandler?: (args: {
     className: string | undefined;
     props: any;
     children: any;
   }) => JSX.Element;
+  imgHandler?: (args: { src: string; props: any }) => JSX.Element;
 };
 
 const Markdown: FunctionComponent<Props> = ({
@@ -34,9 +34,9 @@ const Markdown: FunctionComponent<Props> = ({
   onSpecialLinkClick,
   onRunCode,
   runCodeReady,
-  files,
   linkTarget,
   divHandler,
+  imgHandler
 }) => {
   const components: Partial<
     Omit<NormalComponents, keyof SpecialComponents> & SpecialComponents
@@ -117,22 +117,16 @@ const Markdown: FunctionComponent<Props> = ({
         }
       },
       img: ({ node, src, ...props }) => {
-        if (src?.startsWith("image://") && files) {
-          const name = src.slice("image://".length);
-          if (name in files) {
-            const a = files[name];
-            if (a.startsWith("base64:")) {
-              const dataBase64 = a.slice("base64:".length);
-              const dataUrl = `data:image/png;base64,${dataBase64}`;
-              return <img src={dataUrl} {...props} />;
-            }
-          }
+        if (imgHandler) {
+          return imgHandler({ src, props });
         }
-        return <img src={src} {...props} />;
+        else {
+          return <img src={src} {...props} />;
+        }
       },
       // }
     }),
-    [onSpecialLinkClick, onRunCode, runCodeReady, files, divHandler],
+    [onSpecialLinkClick, onRunCode, runCodeReady, divHandler, imgHandler],
   );
   return (
     <div className="markdown-body" style={{ fontSize: 16 }}>
