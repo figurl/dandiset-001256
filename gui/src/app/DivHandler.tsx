@@ -16,6 +16,7 @@ import ImageSeriesItemView from "../neurosift-lib/viewPlugins/ImageSeries/ImageS
 import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
 import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 import { MainContext } from "./MainContext";
+import { AnnotationsContext } from "./App";
 
 export interface DivHandlerProps {
   className?: string;
@@ -35,6 +36,10 @@ export const useDivHandler = (): DivHandlerComponent => {
 
         case "image-segmentation": {
           return <ImageSegmentationComponent />;
+        }
+
+        case "session-selector": {
+          return <SessionSelector />;
         }
 
         case "acquisition-selector": {
@@ -126,7 +131,8 @@ const Layout1: FunctionComponent<
 
 const AcquisitionView: FunctionComponent = () => {
   const width = useDocumentWidth();
-  const { acquisitionId, roiIndex, annotations } = useContext(MainContext)!;
+  const annotations = useContext(AnnotationsContext);
+  const { acquisitionId, roiIndex } = useContext(MainContext)!;
 
   return (
     <Layout1 width={width} height={1100}>
@@ -187,19 +193,57 @@ const ImageSegmentationComponent: FunctionComponent = () => {
   );
 };
 
+const sessionOptions: {
+  nwbUrl: string;
+  label: string;
+}[] = [
+  {
+    nwbUrl:
+      "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/",
+    label: "sub-AA0304_ses-20210311T192013",
+  },
+  {
+    nwbUrl:
+      "https://api.dandiarchive.org/api/assets/656934a4-532f-4c28-8632-4fd5d35fecfd/download/",
+    label: "sub-AA0308_ses-20210414T173129",
+  },
+  {
+    nwbUrl:
+      "https://api.dandiarchive.org/api/assets/a44445a0-fa69-4694-a82b-b918c3d47249/download/",
+    label: "sub-AA0310_ses-20210418T142709",
+  },
+];
+
+const SessionSelector: FunctionComponent = () => {
+  const { setNwbUrl } = useContext(MainContext)!;
+
+  return (
+    <div>
+      Session:{" "}
+      <select onChange={(e) => setNwbUrl(e.target.value)}>
+        {sessionOptions.map((option) => (
+          <option key={option.nwbUrl} value={option.nwbUrl}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
 // acquisitions 000 through 036
 const acquisitionOptions = Array.from({ length: 37 }, (_, i) =>
   i.toString().padStart(3, "0"),
 );
 
 const AcquisitionSelector: FunctionComponent = () => {
-  const { acquisitionId, setAcquisitionId } = useContext(MainContext)!;
+  const { nwbUrl, acquisitionId, setAcquisitionId } = useContext(MainContext)!;
 
   const { resetTimeseriesSelection } = useTimeseriesSelection();
 
   useEffect(() => {
     resetTimeseriesSelection();
-  }, [acquisitionId, resetTimeseriesSelection]);
+  }, [nwbUrl, acquisitionId, resetTimeseriesSelection]);
 
   return (
     <div>

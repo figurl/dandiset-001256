@@ -5,9 +5,11 @@ import mainMdTemplate from "../main.md?raw";
 
 import nunjucks from "nunjucks";
 import {
+  createContext,
   FunctionComponent,
   PropsWithChildren,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -20,6 +22,7 @@ import { useDivHandler } from "./DivHandler";
 import { useAnnotations } from "./useAnnotations";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import ChatPage from "./ChatPage/ChatPage";
+import { TimeseriesAnnotation } from "../neurosift-lib/viewPlugins/TimeSeries/TimeseriesItemView/WorkerTypes";
 
 nunjucks.configure({ autoescape: false });
 
@@ -27,9 +30,13 @@ const data = {};
 
 const mainMd = nunjucks.renderString(mainMdTemplate, data);
 
-const nwbUrl =
+const defaultNwbUrl =
   "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/";
 const dandisetId = "001256";
+
+export const AnnotationsContext = createContext<
+  TimeseriesAnnotation[] | undefined
+>(undefined);
 
 const App: FunctionComponent = () => {
   return (
@@ -45,35 +52,43 @@ const AppChild0: FunctionComponent = () => {
   const p = queryParameters.get("p");
   const { width, height } = useWindowDimensions();
   if (p === "/chat") {
-    return <ChatPage width={width} height={height} nwbUrl={nwbUrl} />;
+    return <ChatPage width={width} height={height} nwbUrl={defaultNwbUrl} />;
   }
-  return (
-    <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>
-      <AppChild1 />
-    </ProvideNwbFile>
-  );
+  return <AppChild1 />;
 };
 
 const AppChild1: FunctionComponent = () => {
-  const [acquisitionId, setAcquisitionId] = useState("000");
+  const [nwbUrl, setNwbUrl] = useState(defaultNwbUrl);
   const [roiIndex, setRoiIndex] = useState<number | "all">(27);
-  const annotations = useAnnotations(acquisitionId);
+  const [acquisitionId, setAcquisitionId] = useState("000");
   return (
     <MainContext.Provider
       value={{
+        nwbUrl,
+        setNwbUrl,
         acquisitionId,
         setAcquisitionId,
         roiIndex,
         setRoiIndex,
-        annotations,
       }}
     >
-      <AppChild2 />
+      <AppChild1b />
     </MainContext.Provider>
   );
 };
 
+const AppChild1b: FunctionComponent = () => {
+  const { nwbUrl } = useContext(MainContext)!;
+  return (
+    <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>
+      <AppChild2 />
+    </ProvideNwbFile>
+  );
+};
+
 const AppChild2: FunctionComponent = () => {
+  const { acquisitionId } = useContext(MainContext)!;
+  const annotations = useAnnotations(acquisitionId);
   const { width, height } = useWindowDimensions();
   const mainAreaWidth = Math.min(width - 30, 1200);
   const offsetLeft = (width - mainAreaWidth) / 2;
@@ -98,17 +113,19 @@ const AppChild2: FunctionComponent = () => {
           width: mainAreaWidth,
         }}
       >
-        <DummyRouteProvider>
-          <SetupTimeseriesSelection>
-            <ProvideDocumentWidth width={mainAreaWidth}>
-              <Markdown
-                source={mainMd}
-                linkTarget="_self"
-                divHandler={divHandler}
-              />
-            </ProvideDocumentWidth>
-          </SetupTimeseriesSelection>
-        </DummyRouteProvider>
+        <AnnotationsContext.Provider value={annotations}>
+          <DummyRouteProvider>
+            <SetupTimeseriesSelection>
+              <ProvideDocumentWidth width={mainAreaWidth}>
+                <Markdown
+                  source={mainMd}
+                  linkTarget="_self"
+                  divHandler={divHandler}
+                />
+              </ProvideDocumentWidth>
+            </SetupTimeseriesSelection>
+          </DummyRouteProvider>
+        </AnnotationsContext.Provider>
       </div>
     </div>
   );

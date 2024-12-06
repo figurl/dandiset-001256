@@ -6,7 +6,7 @@
 
 ---
 
-Right now, this document shows session [sub-AA0304_ses-20210311T192013](https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/&dandisetId=001256&dandisetVersion=0.241120.2150), but in the future, you will be able to select from the 30 sessions in this dataset. The session contains a number of acquisitions.
+<div class="session-selector"></div>
 
 <div class="acquisition-selector"></div>
 
