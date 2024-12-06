@@ -39,9 +39,10 @@ import { computeTool } from "./Chat/tools/compute";
 type ChatPageProps = {
   width: number;
   height: number;
+  nwbUrl: string;
 };
 
-const systemMessage1 = `
+const getSystemMessage1 = (nwbUrl: string) => `
 You are a helpful assistant that is responding to technical questions.
 Your responses should be concise and informative with a scientific style and certainly not informal or overly verbose.
 
@@ -54,22 +55,169 @@ You should also respect information that starts with "NOTE" in all caps followed
 
 If the user asks about something that is not related to one of these capabilities, you should respond with a message indicating that you are unable to help with that question.
 
+You are assisting with a sesssion within Dandiset 001256. The purpose is for the user to explore that session and to perform some basic data analysis.
+
 CAPABILITY: If the user wants create a plot, you should use the figure_script tool.
 You pass in a self-contained script that uses matplotlib or plotly, and the output is one or more markdown or html text lines that you can include in your response.
+
+IMPORTANT: be sure to include the text output by the script in your generated response.
+For example, if the response was ![plot](image://figure_1.png), you should include the text ![plot](image://figure_1.png) in your response,
+and if the response was <div class="plotly" src="...">plotly</div>, you should include the text <div class="plotly" src="...">plotly</div> in your response.
 
 CAPABILITY: If you need to compute or analyze data, you should use the compute_script tool.
 You pass in a Python script that performs the computation and prints the results to stdout.
 The output of the tool is the stdout output of the script.
 You may consider outputing the results as JSON text.
+
+NOTE: when writing scripts, make sure they are self-contained and include all the necessary imports such as numpy.
+
+CAPABILITY: When writing python scripts either for plotting or computing, you can make use of the following library which should be installed on the user's system:
+
+# %%
+import numpy as np
+from dandiset_001256_interface import load_session
+
+# %%
+nwb_url = "${nwbUrl}"
+S = load_session(nwb_url=nwb_url)
+
+acquisition_names = S.get_acquisition_names()
+print(f"Number of acquisitions: {len(acquisition_names)}")
+print(f"Number of ROIs: {S.get_num_rois()}")
+print("")
+
+two_photon_series = S.get_two_photon_series("000")
+print("===== TWO PHOTON SERIES =====")
+print(f"Starting time (sec): {two_photon_series.starting_time}")
+print(f"Rate (Hz): {two_photon_series.rate}")
+print(f"Number of frames: {two_photon_series.num_frames}")
+print(f"Image size: {two_photon_series.frame_shape[0]} x {two_photon_series.frame_shape[1]}")
+print("")
+
+pupil_video = S.get_pupil_video("000")
+print("===== PUPIL VIDEO =====")
+print(f"Starting time (sec): {pupil_video.starting_time}")
+print(f"Rate (Hz): {pupil_video.rate}")
+print(f"Number of frames: {pupil_video.num_frames}")
+print(f"Image size: {pupil_video.frame_shape[0]} x {pupil_video.frame_shape[1]}")
+print("")
+
+pupil_radius = S.get_pupil_radius("000")
+print("===== PUPIL RADIUS =====")
+print(f"Starting time (sec): {pupil_radius.starting_time}")
+print(f"Rate (Hz): {pupil_radius.rate}")
+print(f"Number of samples: {pupil_radius.num_samples}")
+print("")
+
+roi_response_series = S.get_roi_response_series("000")
+print("===== ROI RESPONSE SERIES =====")
+print(f"Starting time (sec): {roi_response_series.starting_time}")
+print(f"Rate (Hz): {roi_response_series.rate}")
+print(f"Number of samples: {roi_response_series.num_samples}")
+print(f'Number of roi channels: {roi_response_series.num_channels}')
+print("")
+# %%
+# Plot all the pupil radius data across all the acquisitions
+
+import matplotlib.pyplot as plt
+
+for acq_name in acquisition_names:
+    pupil_radius = S.get_pupil_radius(acq_name)
+    plt.plot(pupil_radius.get_timestamps(), pupil_radius.get_data(), label=acq_name)
+
+plt.xlabel("Time (sec)")
+plt.ylabel("Pupil radius (pixels)")
+# plt.legend() # don't show legend because there are too many acquisitions
+plt.show()
+# %%
+# Plot all the pupil radius data aligned to start time
+
+for acq_name in acquisition_names:
+    pupil_radius = S.get_pupil_radius(acq_name)
+    plt.plot(pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data(), label=acq_name)
+
+plt.xlabel("Time (sec)")
+plt.ylabel("Pupil radius (pixels)")
+# plt.legend() # don't show legend because there are too many acquisitions
+plt.show()
+# %%
+# Plot the average pupil radius profile across all acquisitions
+# Do not assume the data dimensions are the same
+
+first_pupil_radius = S.get_pupil_radius(acquisition_names[0])
+first_timestamps = first_pupil_radius.get_timestamps()
+
+# interpolate all pupil radius data to the same timestamps
+pupil_radius_data = []
+for acq_name in acquisition_names:
+    pupil_radius = S.get_pupil_radius(acq_name)
+    pupil_radius_data.append(np.interp(first_timestamps, pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data()))
+
+pupil_radius_data = np.array(pupil_radius_data)
+# Compute the mean, but ignore NaN values
+mean_pupil_radius = np.nanmean(pupil_radius_data, axis=0)
+
+plt.plot(first_timestamps - first_pupil_radius.starting_time, mean_pupil_radius)
+plt.xlabel("Time (sec)")
+plt.ylabel("Average pupil radius (pixels)")
+plt.show()
+# %%
+# Plot the ROI response series data for a particular ROI across all acquisitions
+
+roi_index = 27
+
+for acq_name in acquisition_names:
+    roi_response_series = S.get_roi_response_series(acq_name)
+    timestamps = roi_response_series.get_timestamps() - roi_response_series.starting_time
+    roi_data = roi_response_series.get_data()
+    plt.plot(timestamps, roi_data[:, roi_index], label=acq_name)
+
+plt.xlabel("Time (sec)")
+plt.ylabel("Fluorescence intensity")
+# plt.legend() # don't show legend because there are too many acquisitions
+plt.show()
+# %%
+# Show a single frame from the two-photon series
+
+two_photon_series = S.get_two_photon_series("000")
+frame_index = 10
+frame = two_photon_series.get_frame(frame_index)
+plt.imshow(frame, cmap='gray')
+plt.axis('off')
+plt.show()
+
+# %%
+# Show a single frame from the pupil video
+
+pupil_video = S.get_pupil_video("000")
+frame_index = 10
+frame = pupil_video.get_frame(frame_index)
+plt.imshow(frame, cmap='gray')
+plt.axis('off')
+plt.show()
+
+Generally, the actual data arrays are reasonably large, so it's NOT a good idea to use compute_script to print out raw data values which you would then use for plotting.
+Instead, you should extract the data in the plotting script while using figure_script.
+
+Since there are usually many acquisitions, it's not a good idea to have a plot legend that includes all the acquisitions.
+
+When making a plot: Don't forget to actually include the generated markdown in the output response.
+
+For the nwb url you can use ${nwbUrl}.
 `;
 
-const ChatPage: FunctionComponent<ChatPageProps> = ({ width, height }) => {
+const ChatPage: FunctionComponent<ChatPageProps> = ({
+  width,
+  height,
+  nwbUrl,
+}) => {
   const [chat, chatDispatch] = useReducer(chatReducer, emptyChat);
   const openRouterKey =
     "sk-or" +
     "-v1-" +
     "4515b1afe37b8d66b1877e0a619840cc4561b28e4236dcc6e17a736d9171e" +
     "751";
+  const systemMessage1 = getSystemMessage1(nwbUrl);
   return (
     <JupyterConnectivityProvider mode="jupyter-server">
       <ChatPageChild
@@ -161,7 +309,7 @@ const ChatWindow: FunctionComponent<{
       });
       setAtLeastOneUserMessageSubmitted(true);
     },
-    [chatDispatch]
+    [chatDispatch],
   );
 
   const messages = chat.messages;
@@ -231,7 +379,7 @@ const ChatWindow: FunctionComponent<{
 
   // agent progress
   const [agentProgress, setAgentProgress] = useState<AgentProgressMessage[]>(
-    []
+    [],
   );
   const resetAgentProgress = useCallback(() => {
     setAgentProgress([]);
@@ -246,7 +394,7 @@ const ChatWindow: FunctionComponent<{
         },
       ]);
     },
-    []
+    [],
   );
 
   // last completion failed
@@ -366,7 +514,7 @@ const ChatWindow: FunctionComponent<{
         }, 500);
       });
     },
-    [openConfirmOkayToRun]
+    [openConfirmOkayToRun],
   );
 
   // last message is assistant with tool calls, so we need to run the tool calls
@@ -390,7 +538,7 @@ const ChatWindow: FunctionComponent<{
       const toolCalls: ORToolCall[] = (lastMessage as any).tool_calls;
       const processToolCall = async (tc: any) => {
         const func = tools.find(
-          (x) => x.tool.function.name === tc.function.name
+          (x) => x.tool.function.name === tc.function.name,
         )?.function;
         if (!func) {
           throw Error(`Unexpected. Did not find tool: ${tc.function.name}`);
@@ -401,7 +549,7 @@ const ChatWindow: FunctionComponent<{
         try {
           addAgentProgressMessage(
             "stdout",
-            `Running tool: ${tc.function.name}`
+            `Running tool: ${tc.function.name}`,
           );
           console.info(`Running ${tc.function.name}`);
           const executeScript2: ExecuteScript = async (
@@ -411,13 +559,13 @@ const ChatWindow: FunctionComponent<{
               onStderr?: (message: string) => void;
               onImage?: (format: "png", content: string) => void;
               onFigure?: (
-                a: { format: "plotly"; content: PlotlyContent }
+                a: { format: "plotly"; content: PlotlyContent },
                 //   | {
                 //       format: "neurosift_figure";
                 //       content: NeurosiftFigureContent;
                 //     },
               ) => void;
-            }
+            },
           ) => {
             setScriptExecutionStatus("starting");
             scriptCancelTrigger.current = false;
@@ -425,7 +573,7 @@ const ChatWindow: FunctionComponent<{
             const jcState = loadJupyterConnectivityStateFromLocalStorage(
               jupyterConnectivityState.mode,
               jupyterConnectivityState.extensionKernel,
-              true
+              true,
             );
             const pythonSessionClient = new PythonSessionClient(jcState);
             try {
@@ -510,7 +658,7 @@ const ChatWindow: FunctionComponent<{
         }
         if (canceled) {
           console.warn(
-            `WARNING!!! Hook canceled during tool call ${tc.function.name}`
+            `WARNING!!! Hook canceled during tool call ${tc.function.name}`,
           );
           return;
         }
@@ -531,7 +679,7 @@ const ChatWindow: FunctionComponent<{
       try {
         setPendingToolCalls(toolCalls);
         const toolItems = toolCalls.map((tc) =>
-          tools.find((x) => x.tool.function.name === tc.function.name)
+          tools.find((x) => x.tool.function.name === tc.function.name),
         );
         const serialIndices = toolItems
           .map((x, i) => ({ x, i }))
@@ -547,7 +695,7 @@ const ChatWindow: FunctionComponent<{
         await Promise.all(
           toolCalls
             .filter((_, i) => nonSerialIndices.includes(i))
-            .map(processToolCall)
+            .map(processToolCall),
         );
       } finally {
         runningToolCalls.current = false;
@@ -605,7 +753,7 @@ const ChatWindow: FunctionComponent<{
       });
       setAtLeastOneUserMessageSubmitted(true);
     },
-    [chatDispatch, inputBarEnabled]
+    [chatDispatch, inputBarEnabled],
   );
 
   // layout
@@ -640,7 +788,7 @@ const ChatWindow: FunctionComponent<{
         lastMessage: messages[index - 1] || null,
       });
     },
-    [messages, chatDispatch]
+    [messages, chatDispatch],
   );
 
   // open window to see the data for a tool response
@@ -658,7 +806,7 @@ const ChatWindow: FunctionComponent<{
       setOpenToolResponseData({ toolCall, toolResponse });
       openToolResponse();
     },
-    [openToolResponse]
+    [openToolResponse],
   );
 
   const handleDownloadChat = useCallback(() => {
@@ -708,7 +856,7 @@ const ChatWindow: FunctionComponent<{
       }
       return <img src={src} {...props} />;
     },
-    [chat.files]
+    [chat.files],
   );
 
   return (
@@ -790,14 +938,14 @@ const ChatWindow: FunctionComponent<{
                 ) : c.role === "user" ? (
                   <>
                     <hr />
-                    <span style={{ color: "darkblue" }}>YOU: </span>
+                    <span style={{ color: "darkblue" }}>Q: </span>
                     <span style={{ color: "darkblue" }}>
                       <MessageDisplay message={c.content as string} />
                       &nbsp;
                       <SmallIconButton
                         onClick={() => {
                           const ok = confirm(
-                            "Delete this prompt and all subsequent messages?"
+                            "Delete this prompt and all subsequent messages?",
                           );
                           if (!ok) return;
                           truncateAtMessage(c);

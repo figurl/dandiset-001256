@@ -74,9 +74,8 @@ export class RunCodeCommunicator {
       onStderr?: (message: string) => void;
       onImage?: (format: "png", content: string) => void;
       onFigure?: (
-        a:
-          | { format: "plotly"; content: PlotlyContent }
-          // | { format: "neurosift_figure"; content: NeurosiftFigureContent },
+        a: { format: "plotly"; content: PlotlyContent },
+        // | { format: "neurosift_figure"; content: NeurosiftFigureContent },
       ) => void;
     },
     canceler: { current: boolean },
@@ -306,15 +305,15 @@ const OutputItemView: FunctionComponent<OutputItemViewProps> = ({ item }) => {
       const data = item.content.data;
       const layout = item.content.layout;
       return <LazyPlotlyPlot data={data} layout={layout} />;
-    // } else if (item.format === "neurosift_figure") {
-    //   return (
-    //     <NeurosiftFigure0
-    //       nwb_url={item.content.nwb_url}
-    //       item_path={item.content.item_path}
-    //       view_plugin_name={item.content.view_plugin_name}
-    //       height={item.content.height}
-    //     />
-    //   );
+      // } else if (item.format === "neurosift_figure") {
+      //   return (
+      //     <NeurosiftFigure0
+      //       nwb_url={item.content.nwb_url}
+      //       item_path={item.content.item_path}
+      //       view_plugin_name={item.content.view_plugin_name}
+      //       height={item.content.height}
+      //     />
+      //   );
     } else {
       return <div>Unknown figure format: {(item as any).format}</div>;
     }

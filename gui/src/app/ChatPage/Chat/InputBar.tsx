@@ -43,7 +43,9 @@ const InputBar: FunctionComponent<InputBarProps> = ({
         style={{ width: width - 8 - 20, height: height - 7 }}
         onKeyDown={handleKeyDown}
         placeholder={
-          waitingForResponse ? "Waiting for response..." : "Type your reponse..."
+          waitingForResponse
+            ? "Waiting for response..."
+            : "Type your reponse..."
         }
         disabled={disabled}
       />

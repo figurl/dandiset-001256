@@ -104,7 +104,10 @@ const resolveArrayBuffer = (content: string | ArrayBuffer): string => {
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   const bytes = new Uint8Array(buffer);
-  const binary = String.fromCharCode(...bytes);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
   return btoa(binary);
 };
 

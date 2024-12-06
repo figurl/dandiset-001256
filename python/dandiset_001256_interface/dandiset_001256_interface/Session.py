@@ -1,5 +1,6 @@
 from typing import List
 import requests
+import numpy as np
 from pynwb import NWBHDF5IO
 import lindi
 
@@ -29,21 +30,65 @@ class Session:
         return [a for a in self._acquisition_names]
 
     def get_two_photon_series(self, acquisition_name: str):
-        return self.nwb.acquisition[f"TwoPhotonSeries_{acquisition_name}"]  # type: ignore
+        return ImageSeries(self.nwb.acquisition[f"TwoPhotonSeries_{acquisition_name}"])  # type: ignore
 
     def get_pupil_video(self, acquisition_name: str):
-        return self.nwb.processing["behavior"][f"pupil_video_{acquisition_name}"]  # type: ignore
+        return ImageSeries(self.nwb.processing["behavior"][f"pupil_video_{acquisition_name}"])  # type: ignore
 
     def get_pupil_radius(self, acquisition_name: str):
-        return self.nwb.processing["behavior"]["PupilTracking"][f"pupil_radius_{acquisition_name}"]  # type: ignore
+        return TimeSeries(self.nwb.processing["behavior"]["PupilTracking"][f"pupil_radius_{acquisition_name}"])  # type: ignore
 
     def get_num_rois(self):
         first_acquisition_name = self._acquisition_names[0]
         r = self.get_roi_response_series(first_acquisition_name)
-        return r.data.shape[1]
+        return r.num_channels
 
     def get_roi_response_series(self, acquisition_name: str):
-        return self.nwb.processing["ophys"]["Fluorescence"][f"RoiResponseSeries_{acquisition_name}"]  # type: ignore
+        return MultichannelTimeSeries(self.nwb.processing["ophys"]["Fluorescence"][f"RoiResponseSeries_{acquisition_name}"])  # type: ignore
+
+
+class ImageSeries:
+    def __init__(self, obj):
+        self.obj = obj
+        self.starting_time = obj.starting_time
+        self.rate = obj.rate
+        self.num_frames = obj.data.shape[0]
+        self.frame_shape = obj.data.shape[1:]
+
+    def get_frame(self, i):
+        return self.obj.data[i][:, :]
+
+    def get_timestamps(self):
+        return self.starting_time + np.arange(self.num_frames) / self.rate
+
+
+class TimeSeries:
+    def __init__(self, obj):
+        self.obj = obj
+        self.starting_time = obj.starting_time
+        self.rate = obj.rate
+        self.num_samples = obj.data.shape[0]
+
+    def get_data(self):
+        return self.obj.data[:]
+
+    def get_timestamps(self):
+        return self.starting_time + np.arange(self.num_samples) / self.rate
+
+
+class MultichannelTimeSeries:
+    def __init__(self, obj):
+        self.obj = obj
+        self.starting_time = obj.starting_time
+        self.rate = obj.rate
+        self.num_samples = obj.data.shape[0]
+        self.num_channels = obj.data.shape[1]
+
+    def get_data(self):
+        return self.obj.data[:]
+
+    def get_timestamps(self):
+        return self.starting_time + np.arange(self.num_samples) / self.rate
 
 
 _session_cache = {}
@@ -103,41 +148,53 @@ def _check_url_exists(url: str):
 
 def example_usage():
     # https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/&dandisetId=001256&dandisetVersion=0.241120.2150
-    url = "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/"
-    S = load_session(nwb_url=url)
+    nwb_url = "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/"
+    S = load_session(nwb_url=nwb_url)
 
-    aa = S.get_acquisition_names()
-    print(f"Number of acquisitions: {len(aa)}")
+    acquisition_names = S.get_acquisition_names()
+    print(f"Number of acquisitions: {len(acquisition_names)}")
     print(f"Number of ROIs: {S.get_num_rois()}")
     print("")
 
-    X = S.get_two_photon_series("000")
+    two_photon_series = S.get_two_photon_series("000")
     print("===== TWO PHOTON SERIES =====")
-    print(f"Starting time (sec): {X.starting_time}")
-    print(f"Rate (Hz): {X.rate}")
-    print(f"Number of samples: {X.data.shape[0]}")
-    print(f"Image size: {X.data.shape[1]} x {X.data.shape[2]}")
+    print(f"Starting time (sec): {two_photon_series.starting_time}")
+    print(f"Rate (Hz): {two_photon_series.rate}")
+    print(f"Number of frames: {two_photon_series.num_frames}")
+    print(f"Image size: {two_photon_series.frame_shape[0]} x {two_photon_series.frame_shape[1]}")
     print("")
 
     pupil_video = S.get_pupil_video("000")
     print("===== PUPIL VIDEO =====")
     print(f"Starting time (sec): {pupil_video.starting_time}")
     print(f"Rate (Hz): {pupil_video.rate}")
-    print(f"Number of samples: {pupil_video.data.shape[0]}")
-    print(f"Image size: {pupil_video.data.shape[1]} x {pupil_video.data.shape[2]}")
+    print(f"Number of frames: {pupil_video.num_frames}")
+    print(f"Image size: {pupil_video.frame_shape[0]} x {pupil_video.frame_shape[1]}")
     print("")
 
     pupil_radius = S.get_pupil_radius("000")
     print("===== PUPIL RADIUS =====")
     print(f"Starting time (sec): {pupil_radius.starting_time}")
     print(f"Rate (Hz): {pupil_radius.rate}")
-    print(f"Number of samples: {pupil_radius.data.shape[0]}")
+    print(f"Number of samples: {pupil_radius.num_samples}")
     print("")
 
     roi_response_series = S.get_roi_response_series("000")
     print("===== ROI RESPONSE SERIES =====")
     print(f"Starting time (sec): {roi_response_series.starting_time}")
     print(f"Rate (Hz): {roi_response_series.rate}")
-    print(f"Number of samples: {roi_response_series.data.shape[0]}")
-    print(f"Number of ROIs: {roi_response_series.data.shape[1]}")
+    print(f"Number of samples: {roi_response_series.num_samples}")
+    print(f'Number of roi channels: {roi_response_series.num_channels}')
     print("")
+
+    # To get the actual data:
+    # two_photon_frame = two_photon_series.get_frame(0)  # shape: (height, width)
+    # pupil_video_frame = pupil_video.get_frame(0)  # shape: (height, width)
+    # pupil_radius_data = pupil_radius.get_data()  # shape: (num_samples,)
+    # data = roi_response_series.get_data()  # shape: (num_samples, num_channels)
+
+    # For convenience, to get the timestamps:
+    # timestamps = two_photon_series.get_timestamps()  # shape: (num_frames,)
+    # timestamps = pupil_video.get_timestamps()  # shape: (num_frames,)
+    # timestamps = pupil_radius.get_timestamps()  # shape: (num_samples,)
+    # timestamps = roi_response_series.get_timestamps()  # shape: (num_samples,)

@@ -8,9 +8,8 @@ export type ExecuteScript = (
     onStderr?: (message: string) => void;
     onImage?: (format: "png", content: string) => void;
     onFigure?: (
-      a:
-        | { format: "plotly"; content: PlotlyContent }
-        // | { format: "neurosift_figure"; content: NeurosiftFigureContent },
+      a: { format: "plotly"; content: PlotlyContent },
+      // | { format: "neurosift_figure"; content: NeurosiftFigureContent },
     ) => void;
   },
 ) => Promise<void>;

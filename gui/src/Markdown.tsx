@@ -36,7 +36,7 @@ const Markdown: FunctionComponent<Props> = ({
   runCodeReady,
   linkTarget,
   divHandler,
-  imgHandler
+  imgHandler,
 }) => {
   const components: Partial<
     Omit<NormalComponents, keyof SpecialComponents> & SpecialComponents
@@ -119,8 +119,7 @@ const Markdown: FunctionComponent<Props> = ({
       img: ({ node, src, ...props }) => {
         if (imgHandler) {
           return imgHandler({ src, props });
-        }
-        else {
+        } else {
           return <img src={src} {...props} />;
         }
       },

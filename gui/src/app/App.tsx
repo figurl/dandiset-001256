@@ -36,7 +36,7 @@ const App: FunctionComponent = () => {
     <BrowserRouter>
       <AppChild0 />
     </BrowserRouter>
-  )
+  );
 };
 
 const AppChild0: FunctionComponent = () => {
@@ -44,13 +44,8 @@ const AppChild0: FunctionComponent = () => {
   const queryParameters = new URLSearchParams(location.search);
   const p = queryParameters.get("p");
   const { width, height } = useWindowDimensions();
-  if (p === '/chat') {
-    return (
-      <ChatPage
-        width={width}
-        height={height}
-      />
-    )
+  if (p === "/chat") {
+    return <ChatPage width={width} height={height} nwbUrl={nwbUrl} />;
   }
   return (
     <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>

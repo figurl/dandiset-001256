@@ -36,24 +36,68 @@ export const useAnnotations = (acquisitionId: string) => {
   }, [stimTableData, acquisitionId]);
   const annotations = useMemo(() => {
     if (!stimInfo) return undefined;
-    return [
-      {
-        type: "interval" as const,
-        data: {
-          label: "DRC",
-          startSec: stimInfo.starting_time + stimInfo.stimDelay,
-          endSec: stimInfo.starting_time + stimInfo.stimDelay + 2,
+    // We are hard-coding this for now because parsing these fields is confusing
+    if (
+      stimInfo.pulseNames.includes("dB_8s_sin") &&
+      stimInfo.pulseSets ===
+        "PC_PTinContrast_5-52kHz_25msDRC_10000Hz70dB_0s_delay"
+    ) {
+      return [
+        {
+          // DRC for 2s
+          type: "interval" as const,
+          data: {
+            label: "DRC",
+            startSec: stimInfo.starting_time + stimInfo.stimDelay,
+            endSec: stimInfo.starting_time + stimInfo.stimDelay + 2,
+          },
         },
-      },
-      {
-        type: "interval" as const,
-        data: {
-          label: "Pure tone",
-          startSec: stimInfo.starting_time + stimInfo.stimDelay + 2,
-          endSec: stimInfo.starting_time + stimInfo.stimDelay + 4,
+        {
+          // pure tone for 400ms
+          type: "interval" as const,
+          data: {
+            label: "PT",
+            startSec: stimInfo.starting_time + stimInfo.stimDelay + 2,
+            endSec: stimInfo.starting_time + stimInfo.stimDelay + 2.4,
+          },
         },
-      },
-    ];
+        {
+          // DRC for remaining time for a total of 8s
+          type: "interval" as const,
+          data: {
+            label: "DRC",
+            startSec: stimInfo.starting_time + stimInfo.stimDelay + 2.4,
+            endSec: stimInfo.starting_time + stimInfo.stimDelay + 8,
+          },
+        },
+      ];
+    } else if (
+      stimInfo.pulseNames.includes("dB_10s_sin") &&
+      stimInfo.pulseSets ===
+        "PC_contrastChange_25msDRC_5-52kHz_50-60_40-70dB_10sEach"
+    ) {
+      // DRC1 for 10 seconds, then DRC2 for 10 seconds
+      return [
+        {
+          type: "interval" as const,
+          data: {
+            label: "DRC1",
+            startSec: stimInfo.starting_time + stimInfo.stimDelay,
+            endSec: stimInfo.starting_time + stimInfo.stimDelay + 10,
+          },
+        },
+        {
+          type: "interval" as const,
+          data: {
+            label: "DRC2",
+            startSec: stimInfo.starting_time + stimInfo.stimDelay + 10,
+            endSec: stimInfo.starting_time + stimInfo.stimDelay + 20,
+          },
+        },
+      ];
+    } else {
+      return [];
+    }
   }, [stimInfo]);
   return annotations;
 };
