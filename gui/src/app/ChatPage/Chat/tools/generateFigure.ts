@@ -1,4 +1,7 @@
-import { NeurosiftFigureContent, PlotlyContent } from "../codeExecution/PythonSessionClient";
+import {
+  NeurosiftFigureContent,
+  PlotlyContent,
+} from "../codeExecution/PythonSessionClient";
 import { ExecuteScript, ToolItem } from "../ToolItem";
 
 const generateFigureDetailedDescription = undefined;

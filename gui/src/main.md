@@ -10,6 +10,8 @@ Right now, this document shows session [sub-AA0304_ses-20210311T192013](https://
 
 <div class="acquisition-selector"></div>
 
+<div class="ROI-selector"></div>
+
 ---
 
 <div class="acquisition-view"></div>

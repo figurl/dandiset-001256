@@ -41,6 +41,10 @@ export const useDivHandler = (): DivHandlerComponent => {
           return <AcquisitionSelector />;
         }
 
+        case "ROI-selector": {
+          return <ROISelector />;
+        }
+
         default:
           return (
             <div className={className} {...props}>
@@ -61,7 +65,7 @@ const Layout1: FunctionComponent<
   if (!Array.isArray(children)) {
     throw new Error("Layout1 requires children to be an array");
   }
-  const H1 = height * 0.4;
+  const H1 = height * 0.5;
   const H2 = (height - H1) / 2;
   const W1 = width / 2;
   const W2 = width - W1;
@@ -122,9 +126,10 @@ const Layout1: FunctionComponent<
 
 const AcquisitionView: FunctionComponent = () => {
   const width = useDocumentWidth();
-  const { acquisitionId, annotations } = useContext(MainContext)!;
+  const { acquisitionId, roiIndex, annotations } = useContext(MainContext)!;
+
   return (
-    <Layout1 width={width} height={800}>
+    <Layout1 width={width} height={1100}>
       {/* PupilVideo */}
       <ImageSeriesItemView
         width={0}
@@ -156,7 +161,9 @@ const AcquisitionView: FunctionComponent = () => {
         width={width}
         height={0}
         path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={true}
+        initialShowAllChannels={roiIndex === "all"}
+        initialNumVisibleChannels={roiIndex === "all" ? undefined : 1}
+        initialVisibleStartChannel={roiIndex === "all" ? undefined : roiIndex}
         initialChannelSeparation={0}
         annotations={annotations}
         yLabel="Fluorescence"
@@ -181,7 +188,7 @@ const ImageSegmentationComponent: FunctionComponent = () => {
 };
 
 // acquisitions 000 through 036
-const options = Array.from({ length: 37 }, (_, i) =>
+const acquisitionOptions = Array.from({ length: 37 }, (_, i) =>
   i.toString().padStart(3, "0"),
 );
 
@@ -201,7 +208,36 @@ const AcquisitionSelector: FunctionComponent = () => {
         value={acquisitionId}
         onChange={(e) => setAcquisitionId(e.target.value)}
       >
-        {options.map((option) => (
+        {acquisitionOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+// roiOptions: "all", 0, 1, 2, ..., 50
+const roiOptions = [
+  "all",
+  ...Array.from({ length: 51 }, (_, i) => i.toString()),
+];
+
+const ROISelector: FunctionComponent = () => {
+  const { roiIndex, setRoiIndex } = useContext(MainContext)!;
+
+  return (
+    <div>
+      ROI:{" "}
+      <select
+        value={roiIndex}
+        onChange={(e) => {
+          const v = e.target.value;
+          setRoiIndex(v === "all" ? v : parseInt(v, 10));
+        }}
+      >
+        {roiOptions.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>

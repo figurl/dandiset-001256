@@ -20,6 +20,8 @@ type Props = {
   spikeTrainsClient?: SpikeTrainsClient;
 
   initialShowAllChannels?: boolean;
+  initialNumVisibleChannels?: number;
+  initialVisibleStartChannel?: number;
   initialChannelSeparation?: number;
   annotations?: TimeseriesAnnotation[];
   yLabel?: string;
@@ -47,6 +49,8 @@ export const NeurodataTimeSeriesItemViewNext: FunctionComponent<Props> = ({
   path,
   spikeTrainsClient,
   initialShowAllChannels,
+  initialNumVisibleChannels,
+  initialVisibleStartChannel,
   initialChannelSeparation,
 }) => {
   const [currentTabId, setCurrentTabId] = useState("timeseries");
@@ -73,6 +77,8 @@ export const NeurodataTimeSeriesItemViewNext: FunctionComponent<Props> = ({
         path={path}
         spikeTrainsClient={spikeTrainsClient}
         initialShowAllChannels={initialShowAllChannels}
+        initialNumVisibleChannels={initialNumVisibleChannels}
+        initialVisibleStartChannel={initialVisibleStartChannel}
         initialChannelSeparation={initialChannelSeparation}
       />
       {nwbUrl ? (
@@ -95,6 +101,8 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
   path,
   spikeTrainsClient,
   initialShowAllChannels,
+  initialNumVisibleChannels,
+  initialVisibleStartChannel,
   initialChannelSeparation,
   annotations,
   yLabel,
@@ -112,6 +120,30 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
         initialChannelSeparation !== undefined ? initialChannelSeparation : 0.5,
       colorChannels: true,
     });
+  useEffect(() => {
+    setTimeSeriesViewOpts((prev) => {
+      const newX = { ...prev };
+      if (initialNumVisibleChannels !== undefined) {
+        newX.numVisibleChannels = initialNumVisibleChannels;
+      }
+      if (initialVisibleStartChannel !== undefined) {
+        newX.visibleStartChannel = initialVisibleStartChannel;
+      }
+      if (initialChannelSeparation !== undefined) {
+        newX.autoChannelSeparation = initialChannelSeparation;
+      }
+      if (initialShowAllChannels) {
+        newX.numVisibleChannels = totalNumChannels || 1;
+      }
+      return newX;
+    });
+  }, [
+    initialNumVisibleChannels,
+    initialVisibleStartChannel,
+    initialChannelSeparation,
+    initialShowAllChannels,
+    totalNumChannels,
+  ]);
   useEffect(() => {
     setTimeSeriesViewOpts((prev) => {
       const newNumVisibleChannels =

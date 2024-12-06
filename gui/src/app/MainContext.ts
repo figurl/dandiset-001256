@@ -4,6 +4,8 @@ import { TimeseriesAnnotation } from "../neurosift-lib/viewPlugins/TimeSeries/Ti
 type MainContextType = {
   acquisitionId: string;
   setAcquisitionId: (id: string) => void;
+  roiIndex: number | "all";
+  setRoiIndex: (index: number | "all") => void;
   annotations: TimeseriesAnnotation[] | undefined;
 };
 

@@ -56,10 +56,17 @@ const AppChild0: FunctionComponent = () => {
 
 const AppChild1: FunctionComponent = () => {
   const [acquisitionId, setAcquisitionId] = useState("000");
+  const [roiIndex, setRoiIndex] = useState<number | "all">(27);
   const annotations = useAnnotations(acquisitionId);
   return (
     <MainContext.Provider
-      value={{ acquisitionId, setAcquisitionId, annotations }}
+      value={{
+        acquisitionId,
+        setAcquisitionId,
+        roiIndex,
+        setRoiIndex,
+        annotations,
+      }}
     >
       <AppChild2 />
     </MainContext.Provider>

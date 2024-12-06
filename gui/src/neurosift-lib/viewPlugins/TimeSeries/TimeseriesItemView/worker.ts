@@ -37,7 +37,6 @@ onmessage = function (evt) {
     drawDebounced();
   }
   if (evt.data.zoomInRequiredForSpikeTrains !== undefined) {
-    console.log(evt.data.zoomInRequiredForSpikeTrains);
     zoomInRequiredForSpikeTrains = evt.data.zoomInRequiredForSpikeTrains;
     drawDebounced();
   }
