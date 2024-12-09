@@ -6,13 +6,13 @@
 
 <div class="acquisition-view"></div>
 
-**Top plot**: Shows the pupil diameter over time, derived from the video. Clicking on points in this plot will update other plots and images to display data corresponding to the selected time frame. _In the future, the stimulus will be shown._
+**Top plot**: Shows the pupil diameter over time, derived from the video. Clicking on points in this plot will update other plots and images to display data corresponding to the selected time frame.
 
-**Bottom plot**: Displays the response time series for a collection ROIs. As mentioned above, one ROI is relevant to the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
+**Bottom plot**: Displays the response time series for the selected ROI.
 
-**Left video**: This video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames. The "Movie" tab allows you to watch the video as a continuous playback. _In the future, the stimulus will be shown._
+**Left video**: This video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames. The "Movie" tab allows you to watch the video as a continuous playback.
 
-**Right video**: Two-photon imaging video, which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations. _In the future, the stimulus will be shown._
+**Right video**: Two-photon imaging video, which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations of the interface.
 
 ---
 
