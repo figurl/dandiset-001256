@@ -45,64 +45,15 @@ type ImageData = {
   data: DatasetDataType;
 };
 
-const useComputedDataDatUrl = (
-  _nwbFile: RemoteH5FileX,
-  _path: string | undefined,
-) => {
-  return undefined; // no longer used
-  /*
-    const [computedDataDatUrl, setComputedDataDatUrl] = useState<string | undefined>(undefined)
-    useEffect(() => {
-        let canceled = false
-        const load = async () => {
-            if (!path) return
-            const etag = await getEtag(nwbFile.url)
-            if (canceled) return
-            if (!etag) return
-            const nwbUrl = `https://neurosift.org/computed/nwb/ETag/${etag.slice(0, 2)}/${etag.slice(2, 4)}/${etag.slice(4, 6)}/${etag}`
-            const datUrl = `${nwbUrl}/${path.slice(1)}.dat`
-            const headResponse = await headRequest(datUrl)
-            if (canceled) return
-            if (!headResponse) return
-            if (headResponse.status !== 200) return
-            setComputedDataDatUrl(datUrl)
-        }
-        load()
-        return () => {canceled = true}
-    }, [nwbFile, path])
-    return computedDataDatUrl
-    */
-};
-
 const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
   width,
   height,
   path,
   rgb,
+  condensed,
   initialBrightnessFactor,
   showOrientationControls,
 }) => {
-  // const nwbFile = useNwbFile();
-  // const [useMp4, setUseMp4] = useState<boolean | undefined>(undefined);
-  // useEffect(() => {
-  //   (async () => {
-  //     if (!nwbFile) return;
-  //     if (nwbFile instanceof RemoteH5FileLindi) {
-  //       const zarray = await nwbFile.getLindiZarray(path + "/data");
-  //       if (zarray?.compressor?.id === "mp4avc") {
-  //         setUseMp4(true);
-  //         return;
-  //       }
-  //     }
-  //     setUseMp4(false);
-  //   })();
-  // }, [nwbFile, path]);
-  // if (useMp4 === undefined) return <div>determining type...</div>;
-  // if (useMp4) {
-  //   return (
-  //     <TwoPhotonSeriesItemViewMp4 width={width} height={height} path={path} />
-  //   );
-  // } else {
   const tabs = useMemo(() => {
     return [
       {
@@ -118,6 +69,17 @@ const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
     ];
   }, []);
   const [currentTabId, setCurrentTabId] = useState("array");
+  const mainContent = (
+    <TwoPhotonSeriesItemViewChild
+      width={width}
+      height={height}
+      path={path}
+      rgb={rgb}
+      initialBrightnessFactor={initialBrightnessFactor}
+      showOrientationControls={showOrientationControls}
+    />
+  );
+  if (condensed) return mainContent;
   return (
     <TabWidget
       tabs={tabs}
@@ -126,14 +88,7 @@ const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
       currentTabId={currentTabId}
       setCurrentTabId={setCurrentTabId}
     >
-      <TwoPhotonSeriesItemViewChild
-        width={0}
-        height={0}
-        path={path}
-        rgb={rgb}
-        initialBrightnessFactor={initialBrightnessFactor}
-        showOrientationControls={showOrientationControls}
-      />
+      {mainContent}
       <TwoPhotonSeriesMovieView width={0} height={0} path={path} />
     </TabWidget>
   );
@@ -209,24 +164,6 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
     };
   }, [currentTime, timeseriesTimestampsClient]);
 
-  const computedDataDatUrl = useComputedDataDatUrl(nwbFile, dataDataset?.path);
-
-  // // determine whether to use precomputed data.dat or read from nwb file
-  // let usePrecomputed: boolean
-  // const isProbablyLocalDataset = nwbFile.url.startsWith('http://')
-  // if (isProbablyLocalDataset) {
-  //     usePrecomputed = false
-  // }
-  // else {
-  //     if (queryParams.dev1 === '1') {
-  //         usePrecomputed = false
-  //     }
-  //     else {
-  //         usePrecomputed = true
-  //     }
-  // }
-  const usePrecomputed = false;
-
   useEffect(() => {
     setLoading(true);
     if (!dataDataset) return;
@@ -244,24 +181,15 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
     let canceled = false;
     const load = async () => {
       if (frameIndex === undefined) return;
-      let x;
-      if (usePrecomputed) {
-        // read from computed data.dat
-        if (!computedDataDatUrl) return;
-        x = await readDataFromDat(
-          computedDataDatUrl,
-          frameIndex * N2 * N3,
-          N2 * N3,
-          dataDataset.dtype,
-        );
-      } else {
-        // read from nwb file
-        // const slice = [[frameIndex, frameIndex + 1], [0, N2], [0, N3]] as [number, number][]
-        const slice = [[frameIndex, frameIndex + 1]] as [number, number][];
-        x = await nwbFile.getDatasetData(dataDataset.path, { slice, canceler });
-        if (!x)
-          throw Error(`Unable to read data from nwb file: ${dataDataset.path}`);
-      }
+      // read from nwb file
+      // const slice = [[frameIndex, frameIndex + 1], [0, N2], [0, N3]] as [number, number][]
+      const slice = [[frameIndex, frameIndex + 1]] as [number, number][];
+      const x = await nwbFile.getDatasetData(dataDataset.path, {
+        slice,
+        canceler,
+      });
+      if (!x)
+        throw Error(`Unable to read data from nwb file: ${dataDataset.path}`);
 
       if (canceled) return;
 
@@ -285,9 +213,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
     };
   }, [
     dataDataset,
-    usePrecomputed,
     nwbFile,
-    computedDataDatUrl,
     frameIndex,
     timeseriesTimestampsClient,
     planeTransform,
@@ -350,7 +276,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
           height: height - timeSelectionBarHeight - bottomBarHeight,
         }}
       >
-        {currentImage && !loading ? (
+        {currentImage && (
           <ImageDataView
             width={width}
             height={height - timeSelectionBarHeight - bottomBarHeight}
@@ -359,16 +285,20 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
             minValue={currentMinValue || 0}
             maxValue={currentMaxValue || 1}
           />
-        ) : usePrecomputed ? (
-          computedDataDatUrl ? (
-            <div>loading...</div>
-          ) : (
-            <div>Unable to find pre-computed dataset</div>
-          )
-        ) : (
-          <span>loading...</span>
         )}
       </div>
+      <div
+        style={{
+          position: "absolute",
+          top: timeSelectionBarHeight,
+          width,
+          height: height - timeSelectionBarHeight - bottomBarHeight,
+          color: "darkblue",
+        }}
+      >
+        {loading && `loading...`}
+      </div>
+
       <div
         style={{
           position: "absolute",

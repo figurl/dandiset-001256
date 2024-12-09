@@ -19,6 +19,7 @@ const ImageSeriesItemView: FunctionComponent<Props> = ({
   width,
   height,
   path,
+  condensed,
   initialBrightnessFactor,
   showOrientationControls,
 }) => {
@@ -27,6 +28,7 @@ const ImageSeriesItemView: FunctionComponent<Props> = ({
       width={width}
       height={height}
       path={path}
+      condensed={condensed}
       rgb={true}
       initialBrightnessFactor={initialBrightnessFactor}
       showOrientationControls={showOrientationControls}

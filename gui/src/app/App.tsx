@@ -90,7 +90,7 @@ const AppChild2: FunctionComponent = () => {
   const { selectedSession, acquisitionId } = useContext(MainContext)!;
   const annotations = useAnnotations(acquisitionId);
   const { width, height } = useWindowDimensions();
-  const mainAreaWidth = Math.min(width - 30, 1200);
+  const mainAreaWidth = Math.min(width - 30, 900);
   const offsetLeft = (width - mainAreaWidth) / 2;
   const [okayToViewSmallScreen, setOkayToViewSmallScreen] = useState(false);
   const divHandler = useDivHandler();
@@ -99,7 +99,7 @@ const AppChild2: FunctionComponent = () => {
     if (selectedSession) {
       mdTemplate += "\n" + session_md_template;
     } else {
-      mdTemplate += "\n" + "Select a session to view data.";
+      mdTemplate += "\n" + "Select a session above to view data.";
     }
     const data = {};
     return nunjucks.renderString(mdTemplate, data);

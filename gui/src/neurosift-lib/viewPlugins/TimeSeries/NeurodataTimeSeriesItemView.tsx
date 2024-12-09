@@ -27,6 +27,7 @@ type Props = {
   yLabel?: string;
   showTimeseriesToolbar?: boolean;
   showTimeseriesNavbar?: boolean;
+  showBottomToolbar?: boolean;
 };
 
 const tabs = [
@@ -108,8 +109,9 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
   yLabel,
   showTimeseriesToolbar,
   showTimeseriesNavbar,
+  showBottomToolbar = true,
 }) => {
-  const bottomToolBarHeight = 30;
+  const bottomToolBarHeight = showBottomToolbar ? 30 : 0;
   const totalNumChannels = useTotalNumChannelsForTimeSeries(path);
   // important to start with only 1 visible channel --- if we want to default to more, do it in a useEffect after we figure out the number of channels in the dataset
   const [timeSeriesViewOpts, setTimeSeriesViewOpts] =
@@ -196,13 +198,15 @@ const NeurodataTimeSeriesItemView: FunctionComponent<Props> = ({
           top: height - bottomToolBarHeight,
         }}
       >
-        <TimeSeriesViewToolbar
-          width={width}
-          height={bottomToolBarHeight}
-          objectPath={path}
-          timeSeriesViewOpts={timeSeriesViewOpts}
-          setTimeSeriesViewOpts={setTimeSeriesViewOpts}
-        />
+        {showBottomToolbar && (
+          <TimeSeriesViewToolbar
+            width={width}
+            height={bottomToolBarHeight}
+            objectPath={path}
+            timeSeriesViewOpts={timeSeriesViewOpts}
+            setTimeSeriesViewOpts={setTimeSeriesViewOpts}
+          />
+        )}
       </div>
     </div>
   );

@@ -51,7 +51,10 @@ const AcquisitionSelector: FunctionComponent = () => {
 };
 
 // roiOptions: "all", 0, 1, 2, ..., 50
-const roiOptions: ("all" | number)[] = ["all", ...Array.from({ length: 51 }, (_, i) => i)];
+const roiOptions: ("all" | number)[] = [
+  "all",
+  ...Array.from({ length: 51 }, (_, i) => i),
+];
 
 export const ROISelector: FunctionComponent = () => {
   const { roiIndex, setRoiIndex } = useContext(MainContext)!;
