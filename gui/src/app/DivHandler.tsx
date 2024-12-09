@@ -1,12 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import "./App.css";
 
-import { FunctionComponent, useContext, useMemo } from "react";
-import { useNwbFileSafe } from "../neurosift-lib/misc/NwbFileContext";
+import { useMemo } from "react";
 import AcquisitionSelector, { ROISelector } from "./AcquisitionSelector";
 import AcquisitionView from "./AcquisitionView";
 import ImageSegmentationComponent from "./ImageSegmentationComponent";
-import { MainContext } from "./MainContext";
 import SessionsTable from "./SessionsTable";
 
 export interface DivHandlerProps {
