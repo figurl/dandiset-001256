@@ -1,7 +1,8 @@
 import { useWindowDimensions } from "@fi-sci/misc";
 import Markdown from "../Markdown";
 import "./App.css";
-import mainMdTemplate from "../main.md?raw";
+import intro_md_template from "../001_intro.md?raw";
+import session_md_template from "../002_session.md?raw";
 
 import nunjucks from "nunjucks";
 import {
@@ -26,10 +27,6 @@ import { TimeseriesAnnotation } from "../neurosift-lib/viewPlugins/TimeSeries/Ti
 import { Session } from "./SessionsTable";
 
 nunjucks.configure({ autoescape: false });
-
-const data = {};
-
-const mainMd = nunjucks.renderString(mainMdTemplate, data);
 
 const defaultNwbUrl =
   "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/";
@@ -90,13 +87,23 @@ const AppChild1b: FunctionComponent = () => {
 };
 
 const AppChild2: FunctionComponent = () => {
-  const { acquisitionId } = useContext(MainContext)!;
+  const { selectedSession, acquisitionId } = useContext(MainContext)!;
   const annotations = useAnnotations(acquisitionId);
   const { width, height } = useWindowDimensions();
   const mainAreaWidth = Math.min(width - 30, 1200);
   const offsetLeft = (width - mainAreaWidth) / 2;
   const [okayToViewSmallScreen, setOkayToViewSmallScreen] = useState(false);
   const divHandler = useDivHandler();
+  const markdown = useMemo(() => {
+    let mdTemplate = intro_md_template;
+    if (selectedSession) {
+      mdTemplate += "\n" + session_md_template;
+    } else {
+      mdTemplate += "\n" + "Select a session to view data.";
+    }
+    const data = {};
+    return nunjucks.renderString(mdTemplate, data);
+  }, [selectedSession]);
   if (width < 800 && !okayToViewSmallScreen) {
     return <SmallScreenMessage onOkay={() => setOkayToViewSmallScreen(true)} />;
   }
@@ -121,7 +128,7 @@ const AppChild2: FunctionComponent = () => {
             <SetupTimeseriesSelection>
               <ProvideDocumentWidth width={mainAreaWidth}>
                 <Markdown
-                  source={mainMd}
+                  source={markdown}
                   linkTarget="_self"
                   divHandler={divHandler}
                 />

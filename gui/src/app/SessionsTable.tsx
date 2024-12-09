@@ -18,11 +18,6 @@ const SessionsTable: FunctionComponent<SessionsTableProps> = () => {
   const [maxToLoad, setMaxToLoad] = useState(5);
   const { sessions, loading, truncated } = useSessions({ maxToLoad });
   const width = useDocumentWidth();
-  useEffect(() => {
-    if (!selectedSession && sessions.length > 0) {
-      setSelectedSession(sessions[0]);
-    }
-  }, [sessions, selectedSession, setSelectedSession]);
   return (
     <div
       style={{ position: "relative", width, maxHeight: 200, overflowY: "auto" }}
