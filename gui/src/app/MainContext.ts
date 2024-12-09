@@ -1,8 +1,9 @@
 import { createContext } from "react";
+import { Session } from "./SessionsTable";
 
 type MainContextType = {
-  nwbUrl: string;
-  setNwbUrl: (url: string) => void;
+  selectedSession: Session | undefined;
+  setSelectedSession: (session: Session) => void;
   acquisitionId: string;
   setAcquisitionId: (id: string) => void;
   roiIndex: number | "all";

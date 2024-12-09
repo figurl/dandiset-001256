@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useReducer } from "react";
-import { useNwbFile } from "../neurosift-lib/misc/NwbFileContext";
+import {
+  useNwbFile,
+  useNwbFileSafe,
+} from "../neurosift-lib/misc/NwbFileContext";
 import { useGroup } from "../neurosift-lib/misc/hooks";
 import { RemoteH5FileX, RemoteH5Group } from "../neurosift-lib/remote-h5-file";
 
@@ -103,15 +106,15 @@ export const useAnnotations = (acquisitionId: string) => {
 };
 
 const useStimTableData = () => {
-  const nwbFile = useNwbFile();
-  if (!nwbFile) {
-    throw new Error("No NwbFile");
-  }
+  const nwbFile = useNwbFileSafe();
   const stimParamTable = useGroup(
-    nwbFile,
+    nwbFile || undefined,
     "/stimulus/presentation/stim param table",
   );
-  const stimTableData = useDynamicTableData(nwbFile, stimParamTable);
+  const stimTableData = useDynamicTableData(
+    nwbFile || undefined,
+    stimParamTable,
+  );
   return stimTableData;
 };
 
@@ -148,7 +151,7 @@ const dynamicTableDataReducer = (
 };
 
 const useDynamicTableData = (
-  nwbFile: RemoteH5FileX,
+  nwbFile: RemoteH5FileX | undefined,
   group: RemoteH5Group | undefined,
 ): DynamicTableData | undefined => {
   const [dynamicTableData, dispatch] = useReducer(dynamicTableDataReducer, {});
@@ -157,6 +160,7 @@ const useDynamicTableData = (
     const load = async () => {
       dispatch({ type: "clear" });
       if (!group) return;
+      if (!nwbFile) return;
       const colnames = group.attrs["colnames"] as string[];
       if (!colnames) return;
       for (const colname of colnames) {

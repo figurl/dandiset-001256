@@ -23,6 +23,7 @@ import { useAnnotations } from "./useAnnotations";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import ChatPage from "./ChatPage/ChatPage";
 import { TimeseriesAnnotation } from "../neurosift-lib/viewPlugins/TimeSeries/TimeseriesItemView/WorkerTypes";
+import { Session } from "./SessionsTable";
 
 nunjucks.configure({ autoescape: false });
 
@@ -58,14 +59,16 @@ const AppChild0: FunctionComponent = () => {
 };
 
 const AppChild1: FunctionComponent = () => {
-  const [nwbUrl, setNwbUrl] = useState(defaultNwbUrl);
+  const [selectedSession, setSelectedSession] = useState<Session | undefined>(
+    undefined,
+  );
   const [roiIndex, setRoiIndex] = useState<number | "all">(27);
   const [acquisitionId, setAcquisitionId] = useState("000");
   return (
     <MainContext.Provider
       value={{
-        nwbUrl,
-        setNwbUrl,
+        selectedSession,
+        setSelectedSession,
         acquisitionId,
         setAcquisitionId,
         roiIndex,
@@ -78,9 +81,9 @@ const AppChild1: FunctionComponent = () => {
 };
 
 const AppChild1b: FunctionComponent = () => {
-  const { nwbUrl } = useContext(MainContext)!;
+  const { selectedSession } = useContext(MainContext)!;
   return (
-    <ProvideNwbFile nwbUrl={nwbUrl} dandisetId={dandisetId}>
+    <ProvideNwbFile nwbUrl={selectedSession?.assetUrl} dandisetId={dandisetId}>
       <AppChild2 />
     </ProvideNwbFile>
   );
