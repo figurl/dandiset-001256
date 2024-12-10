@@ -59,8 +59,11 @@ const AppChild1: FunctionComponent = () => {
   const [selectedSession, setSelectedSession] = useState<Session | undefined>(
     undefined,
   );
-  const [roiIndex, setRoiIndex] = useState<number | "all">(27);
+  const [roiNumber, setRoiNumber] = useState<number | "all">("all");
   const [acquisitionId, setAcquisitionId] = useState("000");
+  const [channelSeparation, setChannelSeparation] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
   return (
     <MainContext.Provider
       value={{
@@ -68,8 +71,14 @@ const AppChild1: FunctionComponent = () => {
         setSelectedSession,
         acquisitionId,
         setAcquisitionId,
-        roiIndex,
-        setRoiIndex,
+        roiNumber,
+        setRoiNumber,
+        channelSeparation,
+        setChannelSeparation,
+        playing,
+        setPlaying,
+        playbackRate,
+        setPlaybackRate,
       }}
     >
       <AppChild1b />
@@ -89,8 +98,8 @@ const AppChild1b: FunctionComponent = () => {
 const AppChild2: FunctionComponent = () => {
   const { selectedSession, acquisitionId } = useContext(MainContext)!;
   const annotations = useAnnotations(acquisitionId);
-  const { width, height } = useWindowDimensions();
-  const mainAreaWidth = Math.min(width - 30, 900);
+  const { width } = useWindowDimensions();
+  const mainAreaWidth = Math.min(width - 30, 1000);
   const offsetLeft = (width - mainAreaWidth) / 2;
   const [okayToViewSmallScreen, setOkayToViewSmallScreen] = useState(false);
   const divHandler = useDivHandler();
@@ -107,36 +116,31 @@ const AppChild2: FunctionComponent = () => {
   if (width < 800 && !okayToViewSmallScreen) {
     return <SmallScreenMessage onOkay={() => setOkayToViewSmallScreen(true)} />;
   }
+  const padding = 10;
   return (
     <div
       style={{
         position: "absolute",
-        width,
-        height: height,
-        overflowY: "auto",
+        left: offsetLeft,
+        width: mainAreaWidth,
+        top: 10,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          left: offsetLeft,
-          width: mainAreaWidth,
-        }}
-      >
-        <AnnotationsContext.Provider value={annotations}>
-          <DummyRouteProvider>
-            <SetupTimeseriesSelection>
-              <ProvideDocumentWidth width={mainAreaWidth}>
-                <Markdown
-                  source={markdown}
-                  linkTarget="_self"
-                  divHandler={divHandler}
-                />
-              </ProvideDocumentWidth>
-            </SetupTimeseriesSelection>
-          </DummyRouteProvider>
-        </AnnotationsContext.Provider>
-      </div>
+      <AnnotationsContext.Provider value={annotations}>
+        <DummyRouteProvider>
+          <SetupTimeseriesSelection>
+            <ProvideDocumentWidth width={mainAreaWidth - 2 * padding}>
+              <Markdown
+                source={markdown}
+                linkTarget="_self"
+                divHandler={divHandler}
+                border="1px solid #ccc"
+                padding={padding}
+              />
+            </ProvideDocumentWidth>
+          </SetupTimeseriesSelection>
+        </DummyRouteProvider>
+      </AnnotationsContext.Provider>
     </div>
   );
 };

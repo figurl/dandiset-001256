@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { SmallIconButton } from "@fi-sci/misc";
-import {
-  Canceler,
-  DatasetDataType,
-  RemoteH5FileX,
-} from "../../remote-h5-file/index";
 import { ArrowLeft, ArrowRight } from "@mui/icons-material";
-import { FunctionComponent, useEffect, useMemo, useState } from "react";
+import { FunctionComponent, useEffect, useMemo, useRef, useState } from "react";
+import TabWidget from "../../components/TabWidget";
 import {
   useTimeRange,
   useTimeseriesSelection,
@@ -14,16 +10,16 @@ import {
 } from "../../contexts/context-timeseries-selection";
 import { useNwbFile } from "../../misc/NwbFileContext";
 import { useDataset } from "../../misc/hooks";
-import { useTimeseriesTimestampsClient } from "../TimeSeries/TimeseriesItemView/TimeseriesTimestampsClient";
+import { Canceler, DatasetDataType } from "../../remote-h5-file/index";
 import TimeseriesSelectionBar, {
   timeSelectionBarHeight,
 } from "../../timeseries/TimeseriesSelectionBar";
+import { useTimeseriesTimestampsClient } from "../TimeSeries/TimeseriesItemView/TimeseriesTimestampsClient";
 import MultiRangeSlider from "./MultiRangeSlider/MultiRangeSlider";
 import PlaneTransformSelector, {
   PlaneTransform,
   defaultPlaneTransform,
 } from "./PlaneTransformSelector";
-import TabWidget from "../../components/TabWidget";
 import TwoPhotonSeriesMovieView from "./TwoPhotonSeriesMovieView";
 
 // const queryParams = parseQuery(window.location.href)
@@ -36,6 +32,7 @@ type Props = {
   rgb?: boolean;
   initialBrightnessFactor?: number;
   showOrientationControls?: boolean;
+  throttleMsec?: number;
 };
 
 type ImageData = {
@@ -53,6 +50,7 @@ const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
   condensed,
   initialBrightnessFactor,
   showOrientationControls,
+  throttleMsec = 100,
 }) => {
   const tabs = useMemo(() => {
     return [
@@ -77,6 +75,7 @@ const TwoPhotonSeriesItemView: FunctionComponent<Props> = ({
       rgb={rgb}
       initialBrightnessFactor={initialBrightnessFactor}
       showOrientationControls={showOrientationControls}
+      throttleMsec={throttleMsec}
     />
   );
   if (condensed) return mainContent;
@@ -101,6 +100,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
   rgb,
   initialBrightnessFactor,
   showOrientationControls,
+  throttleMsec = 100,
 }) => {
   const nwbFile = useNwbFile();
   if (!nwbFile) throw Error("Unexpected: nwbFile is null");
@@ -114,7 +114,9 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
     path,
   );
 
-  const { currentTime, setCurrentTime } = useTimeseriesSelection();
+  const { currentTime: currentTimeSource, setCurrentTime } =
+    useTimeseriesSelection();
+  const currentTime = useThrottledState(currentTimeSource, throttleMsec);
   const { setVisibleTimeRange } = useTimeRange();
   useTimeseriesSelectionInitialization(
     timeseriesTimestampsClient?.startTime,
@@ -188,10 +190,9 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
         slice,
         canceler,
       });
+      if (canceled) return;
       if (!x)
         throw Error(`Unable to read data from nwb file: ${dataDataset.path}`);
-
-      if (canceled) return;
 
       const imageData = transformImageData(
         {
@@ -314,6 +315,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
             disabled={
               (currentTime || 0) <= (timeseriesTimestampsClient?.startTime || 0)
             }
+            title="Previous frame"
             onClick={() => incrementFrame(-1)}
             icon={<ArrowLeft />}
           />
@@ -321,6 +323,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
             disabled={
               (currentTime || 0) >= (timeseriesTimestampsClient?.endTime || 0)
             }
+            title="Next frame"
             onClick={() => incrementFrame(1)}
             icon={<ArrowRight />}
           />
@@ -334,14 +337,16 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
           />
         )}
         &nbsp;&nbsp;
-        <ValueRangeSelector
-          min={0}
-          max={maxDataValue || 1}
-          currentMinValue={currentMinValue}
-          currentMaxValue={currentMaxValue}
-          setCurrentMinValue={setCurrentMinValue}
-          setCurrentMaxValue={setCurrentMaxValue}
-        />
+        <div style={{ position: "relative", top: 5 }}>
+          <ValueRangeSelector
+            min={0}
+            max={maxDataValue || 1}
+            currentMinValue={currentMinValue}
+            currentMaxValue={currentMaxValue}
+            setCurrentMinValue={setCurrentMinValue}
+            setCurrentMaxValue={setCurrentMaxValue}
+          />
+        </div>
         {showOrientationControls !== false && (
           <>
             &nbsp;&nbsp;
@@ -357,6 +362,7 @@ export const TwoPhotonSeriesItemViewChild: FunctionComponent<Props> = ({
             <span>&nbsp;&nbsp;loading...</span>
           </div>
         )}
+        &nbsp;&nbsp;
       </div>
     </div>
   );
@@ -598,48 +604,48 @@ const maximum = (x: DatasetDataType): number => {
   return max;
 };
 
-const readDataFromDat = async (
-  url: string,
-  offset: number,
-  length: number,
-  dtype: string,
-): Promise<DatasetDataType> => {
-  let dt = "";
-  if (dtype === "<h") dt = "int16";
-  else if (dtype === "<i") dt = "int32";
-  else if (dtype === "<f") dt = "float32";
-  else if (dtype === "<d") dt = "float64";
-  else dt = dtype;
+// const readDataFromDat = async (
+//   url: string,
+//   offset: number,
+//   length: number,
+//   dtype: string,
+// ): Promise<DatasetDataType> => {
+//   let dt = "";
+//   if (dtype === "<h") dt = "int16";
+//   else if (dtype === "<i") dt = "int32";
+//   else if (dtype === "<f") dt = "float32";
+//   else if (dtype === "<d") dt = "float64";
+//   else dt = dtype;
 
-  let numBytesPerElement = 0;
-  if (dt === "int16") numBytesPerElement = 2;
-  else if (dt === "int32") numBytesPerElement = 4;
-  else if (dt === "float32") numBytesPerElement = 4;
-  else if (dt === "float64") numBytesPerElement = 8;
-  else throw Error(`Unexpected dtype: ${dtype}`);
+//   let numBytesPerElement = 0;
+//   if (dt === "int16") numBytesPerElement = 2;
+//   else if (dt === "int32") numBytesPerElement = 4;
+//   else if (dt === "float32") numBytesPerElement = 4;
+//   else if (dt === "float64") numBytesPerElement = 8;
+//   else throw Error(`Unexpected dtype: ${dtype}`);
 
-  const startByte = offset * numBytesPerElement;
-  const endByte = (offset + length) * numBytesPerElement;
+//   const startByte = offset * numBytesPerElement;
+//   const endByte = (offset + length) * numBytesPerElement;
 
-  const response = await fetch(url, {
-    headers: {
-      Range: `bytes=${startByte}-${endByte - 1}`,
-    },
-  });
+//   const response = await fetch(url, {
+//     headers: {
+//       Range: `bytes=${startByte}-${endByte - 1}`,
+//     },
+//   });
 
-  const buf = await response.arrayBuffer();
-  if (dt === "int16") {
-    return new Int16Array(buf);
-  } else if (dt === "int32") {
-    return new Int32Array(buf);
-  } else if (dt === "float32") {
-    return new Float32Array(buf);
-  } else if (dt === "float64") {
-    return new Float64Array(buf);
-  } else {
-    throw Error(`Unexpected dtype: ${dtype}`);
-  }
-};
+//   const buf = await response.arrayBuffer();
+//   if (dt === "int16") {
+//     return new Int16Array(buf);
+//   } else if (dt === "int32") {
+//     return new Int32Array(buf);
+//   } else if (dt === "float32") {
+//     return new Float32Array(buf);
+//   } else if (dt === "float64") {
+//     return new Float64Array(buf);
+//   } else {
+//     throw Error(`Unexpected dtype: ${dtype}`);
+//   }
+// };
 
 // function parseQuery(queryString: string) {
 //     const ind = queryString.indexOf('?')
@@ -696,5 +702,41 @@ const transformImageData = (
     data: data2,
   };
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function useThrottledState(value: any, delay: number) {
+  const [throttledValue, setThrottledValue] = useState(value);
+  const lastUpdateTimeRef = useRef(Date.now());
+  const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+
+    // If enough time has passed, update immediately
+    if (timeSinceLastUpdate >= delay) {
+      setThrottledValue(value);
+      lastUpdateTimeRef.current = now;
+    } else {
+      // Otherwise, set a timeout to update after the remaining time
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setThrottledValue(value);
+        lastUpdateTimeRef.current = Date.now();
+      }, delay - timeSinceLastUpdate);
+    }
+
+    return () => {
+      // Clear timeout on cleanup
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [value, delay]);
+
+  return throttledValue;
+}
 
 export default TwoPhotonSeriesItemView;

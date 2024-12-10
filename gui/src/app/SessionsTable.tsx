@@ -4,6 +4,7 @@ import { getNwbFileFromUrl } from "../neurosift-lib/misc/ProvideNwbFile";
 import { MainContext } from "./MainContext";
 import { Hyperlink } from "@fi-sci/misc";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type SessionsTableProps = {};
 
 export type Session = {
@@ -11,6 +12,7 @@ export type Session = {
   assetId: string;
   assetUrl: string;
   numAcquisitions: number;
+  numRois: number;
 };
 
 const SessionsTable: FunctionComponent<SessionsTableProps> = () => {
@@ -92,11 +94,16 @@ const dandisetVersion = "0.241120.2150";
 
 const useSessions = (o: {
   maxToLoad: number;
-}): { sessions: Session[]; loading: boolean; truncated: boolean } => {
+}): {
+  sessions: Session[];
+  loading: boolean;
+  truncated: boolean;
+  errorMessage: string | null;
+} => {
   // https://api.dandiarchive.org/api/dandisets/001256/versions/0.241120.2150/assets/?order=path&metadata=false
   const url = `https://api.dandiarchive.org/api/dandisets/${dandisetId}/versions/${dandisetVersion}/assets/?order=path&metadata=false`;
   const [sessions, setSessions] = useState<Session[] | null>(null);
-  const [errorMesssage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [truncated, setTruncated] = useState(false);
   useEffect(() => {
@@ -139,11 +146,15 @@ const useSessions = (o: {
           });
           if (ff) {
             const g = await ff.getGroup("/acquisition");
+            const h = await ff.getDataset(
+              "/processing/ophys/Fluorescence/RoiResponseSeries_000/data",
+            );
             return {
               numAcquisitions:
                 g?.subgroups.filter((x) =>
                   x.name.startsWith("TwoPhotonSeries_"),
                 ).length || 0,
+              numRois: h?.shape[1] || 0,
             };
           } else {
             return null;
@@ -162,6 +173,7 @@ const useSessions = (o: {
           assetId: r.asset_id,
           assetUrl,
           numAcquisitions: info.numAcquisitions,
+          numRois: info.numRois,
         });
         if (Date.now() - timer > 500) {
           timer = Date.now();
@@ -179,7 +191,7 @@ const useSessions = (o: {
       canceled = true;
     };
   }, [url, o.maxToLoad]);
-  return { sessions: sessions || [], loading, truncated };
+  return { sessions: sessions || [], loading, truncated, errorMessage };
 };
 
 const neurosiftLinkForAsset = (assetUrl: string): string => {

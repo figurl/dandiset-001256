@@ -2,6 +2,8 @@
 
 <div class="ROI-selector"></div>
 
+<div class="channel-separation-selector"></div>
+
 ---
 
 <div class="acquisition-timeseries-view"></div>

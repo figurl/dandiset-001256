@@ -8,11 +8,20 @@ import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries
 import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSeries/TwoPhotonSeriesItemView";
 import { AnnotationsContext } from "./App";
 import { MainContext } from "./MainContext";
+import PlayControl from "./PlayControl";
 
 const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
   const width = useDocumentWidth();
   const annotations = useContext(AnnotationsContext);
-  const { acquisitionId, roiIndex } = useContext(MainContext)!;
+  const {
+    acquisitionId,
+    roiNumber,
+    channelSeparation,
+    playing,
+    setPlaying,
+    playbackRate,
+    setPlaybackRate,
+  } = useContext(MainContext)!;
 
   const nwbFile = useNwbFileSafe();
   if (!nwbFile) {
@@ -20,6 +29,15 @@ const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
   }
   return (
     <Layout1 width={width} height={600}>
+      {/* Toolbar */}
+      <div>
+        <PlayControl
+          playing={playing}
+          setPlaying={setPlaying}
+          playbackRate={playbackRate}
+          setPlaybackRate={setPlaybackRate}
+        />
+      </div>
       {/* TwoPhotonVideo */}
       <TwoPhotonSeriesItemView
         width={0}
@@ -28,16 +46,19 @@ const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
         initialBrightnessFactor={2}
         showOrientationControls={false}
         condensed={true}
+        throttleMsec={500}
       />
       {/* RoiTimeseriesPlot */}
       <NeurodataTimeSeriesItemView
         width={width}
         height={0}
         path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={roiIndex === "all"}
-        initialNumVisibleChannels={roiIndex === "all" ? undefined : 1}
-        initialVisibleStartChannel={roiIndex === "all" ? undefined : roiIndex}
-        initialChannelSeparation={0}
+        initialShowAllChannels={roiNumber === "all"}
+        initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
+        initialVisibleStartChannel={
+          roiNumber === "all" ? undefined : roiNumber - 1
+        }
+        initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
         annotations={annotations}
         yLabel="Fluorescence"
         showTimeseriesToolbar={false}
@@ -57,9 +78,12 @@ const Layout1: FunctionComponent<
   if (!Array.isArray(children)) {
     throw new Error("Layout1 requires children to be an array");
   }
-  const H1 = height * 0.7;
-  const H2 = height * 0.3;
+  const H0 = 45;
+  const H1 = (height - H0) * 0.7;
+  const H2 = height - H0 - H1;
   /*
+    +-----------------------------------+
+    |               Toolbar             |
     +-----------------+-----------------+
     |           TwoPhotonVideo          |
     |                                   |
@@ -68,12 +92,18 @@ const Layout1: FunctionComponent<
     |                                   |
     +-----------------------------------+
     */
-  const C1: ReactElement = children[0];
-  const C2: ReactElement = children[1];
+  const C0: ReactElement = children[0];
+  const C1: ReactElement = children[1];
+  const C2: ReactElement = children[2];
 
   return (
     <div style={{ position: "relative", width, height }}>
-      <div style={{ position: "absolute", width, height: H1, top: 0, left: 0 }}>
+      <div style={{ position: "absolute", width, height: H0, top: 0, left: 0 }}>
+        {C0}
+      </div>
+      <div
+        style={{ position: "absolute", width, height: H1, top: H0, left: 0 }}
+      >
         <C1.type key={C1.key} {...C1.props} width={width} height={H1} />
       </div>
       <div
@@ -81,7 +111,7 @@ const Layout1: FunctionComponent<
           position: "absolute",
           width,
           height: H2,
-          top: H1,
+          top: H0 + H1,
           left: 0,
         }}
       >

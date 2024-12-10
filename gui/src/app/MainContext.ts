@@ -6,8 +6,14 @@ type MainContextType = {
   setSelectedSession: (session: Session) => void;
   acquisitionId: string;
   setAcquisitionId: (id: string) => void;
-  roiIndex: number | "all";
-  setRoiIndex: (index: number | "all") => void;
+  roiNumber: number | "all";
+  setRoiNumber: (index: number | "all") => void;
+  channelSeparation: number;
+  setChannelSeparation: (separation: number) => void;
+  playing: boolean;
+  setPlaying: (playing: boolean) => void;
+  playbackRate: number;
+  setPlaybackRate: (rate: number) => void;
 };
 
 export const MainContext = createContext<MainContextType | null>(null);

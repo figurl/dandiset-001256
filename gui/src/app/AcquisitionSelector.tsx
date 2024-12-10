@@ -50,14 +50,14 @@ const AcquisitionSelector: FunctionComponent = () => {
   );
 };
 
-// roiOptions: "all", 0, 1, 2, ..., 50
-const roiOptions: ("all" | number)[] = [
-  "all",
-  ...Array.from({ length: 51 }, (_, i) => i),
-];
-
 export const ROISelector: FunctionComponent = () => {
-  const { roiIndex, setRoiIndex } = useContext(MainContext)!;
+  const { roiNumber, setRoiNumber, selectedSession } = useContext(MainContext)!;
+
+  // roiOptions: "all", 1, 2, 3, ...
+  const roiOptions: ("all" | number)[] = [
+    "all",
+    ...Array.from({ length: selectedSession?.numRois || 0 }, (_, i) => i + 1),
+  ];
 
   const nwbFile = useNwbFileSafe();
   if (!nwbFile) {
@@ -71,15 +71,51 @@ export const ROISelector: FunctionComponent = () => {
         const optString = option === "all" ? "all" : `${option}`;
         return (
           <span
-            onClick={() => setRoiIndex(option)}
+            onClick={() => setRoiNumber(option)}
             style={{ cursor: "pointer" }}
           >
-            <input type="radio" key={optString} checked={roiIndex === option} />
+            <input
+              type="radio"
+              key={optString}
+              checked={roiNumber === option}
+            />
             &nbsp;{optString}&nbsp;&nbsp;
           </span>
         );
       })}
     </p>
+  );
+};
+
+const channelSeparationChoices = [0, 0.1, 0.5];
+
+export const ChannelSeparationSelector: FunctionComponent = () => {
+  const {
+    channelSeparation,
+    setChannelSeparation,
+    roiNumber,
+    playing,
+    setPlaying,
+    setPlaybackRate,
+  } = useContext(MainContext)!;
+
+  const nwbFile = useNwbFileSafe();
+  if (!nwbFile) {
+    return <div>No NWB file selected</div>;
+  }
+
+  return (
+    <select
+      value={channelSeparation}
+      onChange={(e) => setChannelSeparation(parseFloat(e.target.value))}
+      disabled={roiNumber !== "all"}
+    >
+      {channelSeparationChoices.map((choice) => (
+        <option key={choice} value={choice}>
+          Channel separation: {choice}
+        </option>
+      ))}
+    </select>
   );
 };
 

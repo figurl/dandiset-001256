@@ -27,6 +27,8 @@ type Props = {
     children: any;
   }) => JSX.Element;
   imgHandler?: (args: { src: string; props: any }) => JSX.Element;
+  border?: string;
+  padding?: number;
 };
 
 const Markdown: FunctionComponent<Props> = ({
@@ -37,6 +39,8 @@ const Markdown: FunctionComponent<Props> = ({
   linkTarget,
   divHandler,
   imgHandler,
+  border,
+  padding = 0,
 }) => {
   const components: Partial<
     Omit<NormalComponents, keyof SpecialComponents> & SpecialComponents
@@ -128,7 +132,7 @@ const Markdown: FunctionComponent<Props> = ({
     [onSpecialLinkClick, onRunCode, runCodeReady, divHandler, imgHandler],
   );
   return (
-    <div className="markdown-body" style={{ fontSize: 16 }}>
+    <div className="markdown-body" style={{ fontSize: 16, border, padding }}>
       <ReactMarkdown
         children={source}
         remarkPlugins={[remarkGfm, remarkMathPlugin]}
@@ -136,6 +140,7 @@ const Markdown: FunctionComponent<Props> = ({
         components={components}
         linkTarget={linkTarget || "_blank"}
       />
+      <div>&nbsp;</div>
     </div>
   );
 };

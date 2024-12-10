@@ -2,7 +2,10 @@
 import "./App.css";
 
 import { useMemo } from "react";
-import AcquisitionSelector, { ROISelector } from "./AcquisitionSelector";
+import AcquisitionSelector, {
+  ChannelSeparationSelector,
+  ROISelector,
+} from "./AcquisitionSelector";
 import ImageSegmentationComponent from "./ImageSegmentationComponent";
 import SessionsTable from "./SessionsTable";
 import AcquisitionTimeseriesView from "./AcquisitionTimeseriesView";
@@ -47,6 +50,10 @@ export const useDivHandler = (): DivHandlerComponent => {
 
         case "ROI-selector": {
           return <ROISelector />;
+        }
+
+        case "channel-separation-selector": {
+          return <ChannelSeparationSelector />;
         }
 
         default:

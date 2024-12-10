@@ -12,7 +12,8 @@ import { MainContext } from "./MainContext";
 const AcquisitionTimeseriesView: FunctionComponent = () => {
   const width = useDocumentWidth();
   const annotations = useContext(AnnotationsContext);
-  const { acquisitionId, roiIndex } = useContext(MainContext)!;
+  const { acquisitionId, roiNumber, channelSeparation } =
+    useContext(MainContext)!;
 
   const nwbFile = useNwbFileSafe();
   if (!nwbFile) {
@@ -36,10 +37,12 @@ const AcquisitionTimeseriesView: FunctionComponent = () => {
         width={width}
         height={0}
         path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={roiIndex === "all"}
-        initialNumVisibleChannels={roiIndex === "all" ? undefined : 1}
-        initialVisibleStartChannel={roiIndex === "all" ? undefined : roiIndex}
-        initialChannelSeparation={0}
+        initialShowAllChannels={roiNumber === "all"}
+        initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
+        initialVisibleStartChannel={
+          roiNumber === "all" ? undefined : roiNumber - 1
+        }
+        initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
         annotations={annotations}
         yLabel="Fluorescence"
         showTimeseriesToolbar={false}
