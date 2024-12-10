@@ -4,6 +4,8 @@
 
 <div class="channel-separation-selector"></div>
 
+<div class="motion-corrected-selector"></div>
+
 ---
 
 <div class="roi-view"></div>

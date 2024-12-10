@@ -34,6 +34,7 @@ const AcquisitionSelector: FunctionComponent = () => {
         Select an acquisition:&nbsp;&nbsp;
         {acquisitionOptions.map((option) => (
           <span
+            key={option}
             onClick={() => setAcquisitionId(option)}
             style={{ cursor: "pointer" }}
           >
@@ -41,6 +42,7 @@ const AcquisitionSelector: FunctionComponent = () => {
               type="radio"
               key={option}
               checked={acquisitionId === option}
+              onChange={() => {}} // avoid warning
             />
             &nbsp;{option}&nbsp;&nbsp;
           </span>
@@ -71,6 +73,7 @@ export const ROISelector: FunctionComponent = () => {
         const optString = option === "all" ? "all" : `${option}`;
         return (
           <span
+            key={optString}
             onClick={() => setRoiNumber(option)}
             style={{ cursor: "pointer" }}
           >
@@ -78,6 +81,7 @@ export const ROISelector: FunctionComponent = () => {
               type="radio"
               key={optString}
               checked={roiNumber === option}
+              onChange={() => {}} // avoid warning
             />
             &nbsp;{optString}&nbsp;&nbsp;
           </span>
@@ -90,14 +94,8 @@ export const ROISelector: FunctionComponent = () => {
 const channelSeparationChoices = [0, 0.1, 0.5];
 
 export const ChannelSeparationSelector: FunctionComponent = () => {
-  const {
-    channelSeparation,
-    setChannelSeparation,
-    roiNumber,
-    playing,
-    setPlaying,
-    setPlaybackRate,
-  } = useContext(MainContext)!;
+  const { channelSeparation, setChannelSeparation, roiNumber } =
+    useContext(MainContext)!;
 
   const nwbFile = useNwbFileSafe();
   if (!nwbFile) {
@@ -113,6 +111,30 @@ export const ChannelSeparationSelector: FunctionComponent = () => {
       {channelSeparationChoices.map((choice) => (
         <option key={choice} value={choice}>
           Channel separation: {choice}
+        </option>
+      ))}
+    </select>
+  );
+};
+
+const motionCorrectedChoices = [true, false];
+
+export const MotionCorrectionSelector: FunctionComponent = () => {
+  const { motionCorrected, setMotionCorrected } = useContext(MainContext)!;
+
+  const nwbFile = useNwbFileSafe();
+  if (!nwbFile) {
+    return <div>No NWB file selected</div>;
+  }
+
+  return (
+    <select
+      value={`${motionCorrected}`}
+      onChange={(e) => setMotionCorrected(e.target.value === "true")}
+    >
+      {motionCorrectedChoices.map((choice) => (
+        <option key={`${choice}`} value={`${choice}`}>
+          Motion corrected: {choice ? "true" : "false"}
         </option>
       ))}
     </select>

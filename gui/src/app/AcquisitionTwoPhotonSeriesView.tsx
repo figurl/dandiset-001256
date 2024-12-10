@@ -9,6 +9,7 @@ import TwoPhotonSeriesItemView from "../neurosift-lib/viewPlugins/TwoPhotonSerie
 import { AnnotationsContext } from "./App";
 import { MainContext } from "./MainContext";
 import PlayControl from "./PlayControl";
+import { getTwoPhotonSeriesPath } from "./util";
 
 const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
   const width = useDocumentWidth();
@@ -21,6 +22,7 @@ const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
     setPlaying,
     playbackRate,
     setPlaybackRate,
+    motionCorrected,
   } = useContext(MainContext)!;
 
   const nwbFile = useNwbFileSafe();
@@ -42,7 +44,7 @@ const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
       <TwoPhotonSeriesItemView
         width={0}
         height={0}
-        path={`/acquisition/TwoPhotonSeries_${acquisitionId}`}
+        path={getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}
         initialBrightnessFactor={2}
         showOrientationControls={false}
         condensed={true}

@@ -2,15 +2,18 @@ import {
   FunctionComponent,
   useContext,
   useEffect,
-  useMemo,
+  useRef,
   useState,
 } from "react";
-import { useNwbFileSafe } from "../neurosift-lib/misc/NwbFileContext";
+import { useTimeseriesSelection } from "../../neurosift-lib/contexts/context-timeseries-selection";
+import { useNwbFileSafe } from "../../neurosift-lib/misc/NwbFileContext";
 import {
   RemoteH5Dataset,
   RemoteH5FileX,
-} from "../neurosift-lib/remote-h5-file";
-import { MainContext } from "./MainContext";
+} from "../../neurosift-lib/remote-h5-file";
+import { MainContext } from "../MainContext";
+import RoiViewWidget from "./RoiViewWidget";
+import { getTwoPhotonSeriesPath } from "../util";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type RoiViewProps = {
@@ -20,10 +23,17 @@ type RoiViewProps = {
 const RoiView: FunctionComponent<RoiViewProps> = () => {
   const nwbFile = useNwbFileSafe();
   const { rois, N1, N2 } = useRois(nwbFile);
-  const referenceImage = useReferenceImage(nwbFile);
-  const { selectedSession, roiNumber } = useContext(MainContext)!;
-  const width = 300;
-  const height = 300;
+  const { selectedSession, roiNumber, acquisitionId, motionCorrected } =
+    useContext(MainContext)!;
+  const { currentTime } = useTimeseriesSelection();
+  const referenceImage = useReferenceImage(
+    nwbFile,
+    acquisitionId,
+    currentTime,
+    motionCorrected,
+  );
+  const width = 400;
+  const height = 400;
   if (!selectedSession) {
     return (
       <div
@@ -65,176 +75,6 @@ const RoiView: FunctionComponent<RoiViewProps> = () => {
   );
 };
 
-type RoiViewWidgetProps = {
-  width: number;
-  height: number;
-  N1: number;
-  N2: number;
-  rois: Roi[] | undefined;
-  referenceImage: number[][] | undefined;
-  selectedRoi: "all" | number;
-};
-
-const v1 = 255;
-const v2 = 160;
-const _ = 128;
-const distinctColors = [
-  [v1, _, _],
-  [_, v1, _],
-  [_, _, v1],
-  [v1, v1, _],
-  [v1, _, v1],
-  [_, v1, v1],
-  [v1, v2, _],
-  [v1, _, v2],
-  [_, v1, v2],
-  [v2, v1, _],
-  [v2, _, v1],
-  [_, v2, v1],
-];
-
-const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
-  width,
-  height,
-  rois,
-  referenceImage,
-  N1,
-  N2,
-  selectedRoi,
-}) => {
-  const [canvasElement, setCanvasElement] = useState<
-    HTMLCanvasElement | undefined
-  >(undefined);
-  const statusBarHeight = 15;
-  const scale = Math.min(width / N1, (height - statusBarHeight) / N2);
-  const offsetX = (width - N1 * scale) / 2;
-  const offsetY = (height - statusBarHeight - N2 * scale) / 2;
-  const status = useMemo(() => {
-    if (referenceImage && !rois) return "Loading ROI data...";
-    if (!referenceImage && !rois)
-      return "Loading reference image and ROI data...";
-    if (!referenceImage && rois) return "Loading reference image...";
-    return `Number of ROIs: ${rois!.length}`;
-  }, [rois, referenceImage]);
-  const referenceImageMaxVal = useMemo(() => {
-    if (!referenceImage) return 0;
-    return computeMaxVal(referenceImage);
-  }, [referenceImage]);
-  useEffect(() => {
-    if (!canvasElement) return;
-    const ctx = canvasElement.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-    if (referenceImage) {
-      const brightnessScale = 1;
-      const referenceImageData = ctx.createImageData(N1, N2);
-      const maxval = referenceImageMaxVal || 1;
-      for (let i = 0; i < N1; i++) {
-        for (let j = 0; j < N2; j++) {
-          const v = (referenceImage[i][j] / maxval) * brightnessScale;
-          const v2 = Math.min(255, v * 255);
-          const index = (i * N2 + j) * 4;
-          referenceImageData.data[index + 0] = v2;
-          referenceImageData.data[index + 1] = v2;
-          referenceImageData.data[index + 2] = v2;
-          referenceImageData.data[index + 3] = 255;
-        }
-      }
-      const offscreenCanvas = document.createElement("canvas");
-      offscreenCanvas.width = N1;
-      offscreenCanvas.height = N2;
-      const c = offscreenCanvas.getContext("2d");
-      if (c) {
-        c.putImageData(referenceImageData, 0, 0);
-        ctx.drawImage(offscreenCanvas, 0, 0, N1 * scale, N2 * scale);
-      }
-    }
-    for (const roi of rois || []) {
-      if (selectedRoi !== "all" && roi.roiNumber !== selectedRoi) {
-        continue;
-      }
-      const planeTransform = { xflip: false, yflip: false, xyswap: true };
-      const color = distinctColors[(roi.roiNumber - 1) % distinctColors.length];
-      const { w0: w0a, h0: h0a, x0: x0a, y0: y0a, data } = roi.imageMask;
-      const w0 = planeTransform.xyswap ? w0a : h0a;
-      const h0 = planeTransform.xyswap ? h0a : w0a;
-      const x0b = planeTransform.xflip ? N1 - x0a - w0 : x0a;
-      const y0b = planeTransform.yflip ? N2 - y0a - h0 : y0a;
-      const x0 = planeTransform.xyswap ? y0b : x0b;
-      const y0 = planeTransform.xyswap ? x0b : y0b;
-      const maxval = computeMaxVal(data);
-      const imageData = ctx.createImageData(w0, h0);
-      for (let i = 0; i < w0; i++) {
-        const i2 = planeTransform.xflip ? w0 - 1 - i : i;
-        for (let j = 0; j < h0; j++) {
-          const j2 = planeTransform.yflip ? h0 - 1 - j : j;
-          const v = data[i2][h0 - 1 - j2] / (maxval || 1);
-          const index = (j * w0 + i) * 4;
-          imageData.data[index + 0] = color[0] * v;
-          imageData.data[index + 1] = color[1] * v;
-          imageData.data[index + 2] = color[2] * v;
-          imageData.data[index + 3] = v ? v * 255 : 0;
-        }
-      }
-      const offscreenCanvas = document.createElement("canvas");
-      offscreenCanvas.width = w0;
-      offscreenCanvas.height = h0;
-      const c = offscreenCanvas.getContext("2d");
-      if (c) {
-        c.putImageData(imageData, 0, 0);
-        ctx.drawImage(
-          offscreenCanvas,
-          x0 * scale,
-          y0 * scale,
-          w0 * scale,
-          h0 * scale,
-        );
-      }
-    }
-  }, [
-    canvasElement,
-    rois,
-    N1,
-    N2,
-    scale,
-    referenceImageMaxVal,
-    referenceImage,
-    selectedRoi,
-  ]);
-  return (
-    <div style={{ position: "relative", width, height, fontSize: 12 }}>
-      <div
-        style={{
-          position: "absolute",
-          width: N1 * scale,
-          height: N2 * scale,
-          left: offsetX,
-          top: offsetY,
-        }}
-      >
-        <canvas
-          ref={(elmt) => elmt && setCanvasElement(elmt)}
-          width={N1 * scale}
-          height={N2 * scale}
-        />
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          width: width,
-          height: statusBarHeight,
-          top: height - statusBarHeight,
-          left: 0,
-          padding: 5,
-        }}
-      >
-        {status}
-      </div>
-    </div>
-  );
-};
-
 // important to store localized masks, otherwise we run out of RAM quick
 type ImageMask = {
   x0: number;
@@ -244,7 +84,7 @@ type ImageMask = {
   data: number[][];
 };
 
-type Roi = {
+export type Roi = {
   roiNumber: number;
   imageMask: ImageMask;
 };
@@ -493,36 +333,46 @@ const getBoundingRect = (data: number[][]) => {
   return { x0, y0, w0: x1 - x0 + 1, h0: y1 - y0 + 1 };
 };
 
-const computeMaxVal = (data: number[][]) => {
-  let maxval = 0;
-  for (let i = 0; i < data.length; i++) {
-    const row = data[i];
-    for (let j = 0; j < row.length; j++) {
-      const v = row[j];
-      maxval = Math.max(maxval, v);
-    }
-  }
-  return maxval;
-};
-
-const useReferenceImage = (nwbFile: RemoteH5FileX | null) => {
+const useReferenceImage = (
+  nwbFile: RemoteH5FileX | null,
+  acquisitionId: string,
+  currentTime: number | undefined,
+  motionCorrected: boolean,
+) => {
   const [image, setImage] = useState<number[][] | undefined>(undefined);
+  const currentTimeThrottled = useThrottledState(currentTime, 500);
   useEffect(() => {
     let canceled = false;
     if (!nwbFile) return;
     const load = async () => {
       setImage(undefined);
+      if (currentTimeThrottled === undefined) return;
+      const dsStartingTimeDsPath = `${getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}/starting_time`;
+      const startingTimeDataset =
+        await nwbFile.getDataset(dsStartingTimeDsPath);
+      if (!startingTimeDataset) return;
+      const startingTime = (await nwbFile.getDatasetData(
+        dsStartingTimeDsPath,
+        {},
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      )) as any as number;
+      if (typeof startingTime !== "number") return;
+      if (canceled) return;
+      const rate = startingTimeDataset.attrs["rate"] as number;
+      if (typeof rate !== "number") return;
+      const index = Math.round((currentTimeThrottled - startingTime) * rate);
       const ds = await nwbFile.getDataset(
-        "/acquisition/TwoPhotonSeries_000/data",
+        `${getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}/data`,
       );
       if (!ds) return;
+      if (canceled) return;
       const N0 = ds.shape[0];
       const N1 = ds.shape[1];
       const N2 = ds.shape[2];
-      const M0 = Math.min(N0, 10);
+      if (index < 0 || index >= N0) return;
       const data = await nwbFile.getDatasetData(
-        "/acquisition/TwoPhotonSeries_000/data",
-        { slice: [[0, M0]] },
+        `${getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}/data`,
+        { slice: [[index, index + 1]] },
       );
       if (!data) return;
       if (canceled) return;
@@ -534,21 +384,56 @@ const useReferenceImage = (nwbFile: RemoteH5FileX | null) => {
         }
         x.push(row);
       }
-      for (let a = 0; a < M0; a++) {
-        for (let i = 0; i < N1; i++) {
-          for (let j = 0; j < N2; j++) {
-            x[i][j] = Math.max(x[i][j], data[a * N1 * N2 + i * N2 + j]);
-          }
+      for (let i = 0; i < N1; i++) {
+        for (let j = 0; j < N2; j++) {
+          x[i][j] = Math.max(x[i][j], data[i * N2 + j]);
         }
       }
+      if (canceled) return;
       setImage(x);
     };
     load();
     return () => {
       canceled = true;
     };
-  }, [nwbFile]);
+  }, [nwbFile, acquisitionId, currentTimeThrottled, motionCorrected]);
   return image;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function useThrottledState(value: any, delay: number) {
+  const [throttledValue, setThrottledValue] = useState(value);
+  const lastUpdateTimeRef = useRef(Date.now());
+  const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+
+    // If enough time has passed, update immediately
+    if (timeSinceLastUpdate >= delay) {
+      setThrottledValue(value);
+      lastUpdateTimeRef.current = now;
+    } else {
+      // Otherwise, set a timeout to update after the remaining time
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setThrottledValue(value);
+        lastUpdateTimeRef.current = Date.now();
+      }, delay - timeSinceLastUpdate);
+    }
+
+    return () => {
+      // Clear timeout on cleanup
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [value, delay]);
+
+  return throttledValue;
+}
 
 export default RoiView;

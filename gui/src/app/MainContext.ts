@@ -14,6 +14,8 @@ type MainContextType = {
   setPlaying: (playing: boolean) => void;
   playbackRate: number;
   setPlaybackRate: (rate: number) => void;
+  motionCorrected: boolean;
+  setMotionCorrected: (motionCorrected: boolean) => void;
 };
 
 export const MainContext = createContext<MainContextType | null>(null);

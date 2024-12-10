@@ -4,11 +4,12 @@ import { useMemo } from "react";
 import AcquisitionPupilVideoView from "./AcquisitionPupilVideoView";
 import AcquisitionSelector, {
   ChannelSeparationSelector,
+  MotionCorrectionSelector,
   ROISelector,
 } from "./AcquisitionSelector";
 import AcquisitionTimeseriesView from "./AcquisitionTimeseriesView";
 import AcquisitionTwoPhotonSeriesView from "./AcquisitionTwoPhotonSeriesView";
-import RoiView from "./RoiView";
+import RoiView from "./RoiView/RoiView";
 import SessionsTable from "./SessionsTable";
 
 export interface DivHandlerProps {
@@ -53,6 +54,10 @@ export const useDivHandler = (): DivHandlerComponent => {
 
         case "channel-separation-selector": {
           return <ChannelSeparationSelector />;
+        }
+
+        case "motion-corrected-selector": {
+          return <MotionCorrectionSelector />;
         }
 
         default:

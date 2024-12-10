@@ -64,6 +64,7 @@ const AppChild1: FunctionComponent = () => {
   const [channelSeparation, setChannelSeparation] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [motionCorrected, setMotionCorrected] = useState(true);
   return (
     <MainContext.Provider
       value={{
@@ -79,6 +80,8 @@ const AppChild1: FunctionComponent = () => {
         setPlaying,
         playbackRate,
         setPlaybackRate,
+        motionCorrected,
+        setMotionCorrected,
       }}
     >
       <AppChild1b />
