@@ -1,16 +1,15 @@
-/* eslint-disable react-refresh/only-export-components */
 import "./App.css";
 
 import { useMemo } from "react";
+import AcquisitionPupilVideoView from "./AcquisitionPupilVideoView";
 import AcquisitionSelector, {
   ChannelSeparationSelector,
   ROISelector,
 } from "./AcquisitionSelector";
-import ImageSegmentationComponent from "./ImageSegmentationComponent";
-import SessionsTable from "./SessionsTable";
 import AcquisitionTimeseriesView from "./AcquisitionTimeseriesView";
-import AcquisitionPupilVideoView from "./AcquisitionPupilVideoView";
 import AcquisitionTwoPhotonSeriesView from "./AcquisitionTwoPhotonSeriesView";
+import RoiView from "./RoiView";
+import SessionsTable from "./SessionsTable";
 
 export interface DivHandlerProps {
   className?: string;
@@ -28,6 +27,10 @@ export const useDivHandler = (): DivHandlerComponent => {
           return <SessionsTable />;
         }
 
+        case "roi-view": {
+          return <RoiView />;
+        }
+
         case "acquisition-timeseries-view": {
           return <AcquisitionTimeseriesView />;
         }
@@ -38,10 +41,6 @@ export const useDivHandler = (): DivHandlerComponent => {
 
         case "acquisition-two-photon-series-view": {
           return <AcquisitionTwoPhotonSeriesView />;
-        }
-
-        case "image-segmentation": {
-          return <ImageSegmentationComponent />;
         }
 
         case "acquisition-selector": {
