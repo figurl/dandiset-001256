@@ -506,12 +506,12 @@ const drawSpikeTrains = async (o: {
 };
 
 const getColorIndexForLabel = (label: string) => {
-  // we need to get an integer based on the label string using a hash
+  // we need to get a positive integer based on the label string using a hash
   let hash = 0;
   for (let i = 0; i < label.length; i++) {
     hash = label.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return hash;
+  return Math.abs(hash);
 };
 
 const drawAnnotations = async (o: {

@@ -8,6 +8,7 @@ import { useNwbFileSafe } from "../neurosift-lib/misc/NwbFileContext";
 import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries/NeurodataTimeSeriesItemView";
 import { AnnotationsContext } from "./App";
 import { MainContext } from "./MainContext";
+import IfHasBeenVisible from "../neurosift-lib/viewPlugins/PSTH/IfHasBeenVisible";
 
 const AcquisitionTimeseriesView: FunctionComponent = () => {
   const width = useDocumentWidth();
@@ -19,37 +20,40 @@ const AcquisitionTimeseriesView: FunctionComponent = () => {
   if (!nwbFile) {
     return <div>No NWB file selected</div>;
   }
+  const height = 400;
   return (
-    <Layout1 width={width} height={400}>
-      {/* PupilRadiusTimeseriesPlot */}
-      <NeurodataTimeSeriesItemView
-        width={0}
-        height={0}
-        path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
-        annotations={annotations}
-        yLabel="Pupil radius"
-        showTimeseriesToolbar={true}
-        showTimeseriesNavbar={true}
-        showBottomToolbar={false}
-      />
-      {/* RoiTimeseriesPlot */}
-      <NeurodataTimeSeriesItemView
-        width={width}
-        height={0}
-        path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={roiNumber === "all"}
-        initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
-        initialVisibleStartChannel={
-          roiNumber === "all" ? undefined : roiNumber - 1
-        }
-        initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
-        annotations={annotations}
-        yLabel="Fluorescence"
-        showTimeseriesToolbar={false}
-        showTimeseriesNavbar={false}
-        showBottomToolbar={false}
-      />
-    </Layout1>
+    <IfHasBeenVisible width={width} height={height}>
+      <Layout1 width={width} height={height}>
+        {/* PupilRadiusTimeseriesPlot */}
+        <NeurodataTimeSeriesItemView
+          width={0}
+          height={0}
+          path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
+          annotations={annotations}
+          yLabel="Pupil radius"
+          showTimeseriesToolbar={true}
+          showTimeseriesNavbar={true}
+          showBottomToolbar={false}
+        />
+        {/* RoiTimeseriesPlot */}
+        <NeurodataTimeSeriesItemView
+          width={width}
+          height={0}
+          path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
+          initialShowAllChannels={roiNumber === "all"}
+          initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
+          initialVisibleStartChannel={
+            roiNumber === "all" ? undefined : roiNumber - 1
+          }
+          initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
+          annotations={annotations}
+          yLabel="Fluorescence"
+          showTimeseriesToolbar={false}
+          showTimeseriesNavbar={false}
+          showBottomToolbar={false}
+        />
+      </Layout1>
+    </IfHasBeenVisible>
   );
 };
 

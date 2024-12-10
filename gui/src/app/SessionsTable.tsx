@@ -3,6 +3,7 @@ import { useDocumentWidth } from "../DocumentWidthContext";
 import { getNwbFileFromUrl } from "../neurosift-lib/misc/ProvideNwbFile";
 import { MainContext } from "./MainContext";
 import { Hyperlink } from "@fi-sci/misc";
+import IfHasBeenVisible from "../neurosift-lib/viewPlugins/PSTH/IfHasBeenVisible";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type SessionsTableProps = {};
@@ -21,54 +22,61 @@ const SessionsTable: FunctionComponent<SessionsTableProps> = () => {
   const { sessions, loading, truncated } = useSessions({ maxToLoad });
   const width = useDocumentWidth();
   return (
-    <div
-      style={{ position: "relative", width, maxHeight: 200, overflowY: "auto" }}
-    >
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Session</th>
-            <th>Num. acquisitions</th>
-            <th>Links</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sessions.map((session) => (
-            <tr key={session.assetId}>
-              <td>
-                <input
-                  type="radio"
-                  name="session"
-                  checked={session.assetId === selectedSession?.assetId}
-                  onChange={() => setSelectedSession(session)}
-                />
-              </td>
-              <td>{session.assetPath.split("/")[1]}</td>
-              <td>{session.numAcquisitions}</td>
-              <td>
-                <a href={neurosiftLinkForAsset(session.assetUrl)}>
-                  View in Neurosift
-                </a>
-              </td>
+    <IfHasBeenVisible width={width} height={200}>
+      <div
+        style={{
+          position: "relative",
+          width,
+          maxHeight: 200,
+          overflowY: "auto",
+        }}
+      >
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Session</th>
+              <th>Num. acquisitions</th>
+              <th>Links</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {!loading && truncated ? (
-        <div>
-          <Hyperlink
-            onClick={() => {
-              setMaxToLoad((v) => v + 20);
-            }}
-          >
-            Show more...
-          </Hyperlink>
-        </div>
-      ) : (
-        <span />
-      )}
-    </div>
+          </thead>
+          <tbody>
+            {sessions.map((session) => (
+              <tr key={session.assetId}>
+                <td>
+                  <input
+                    type="radio"
+                    name="session"
+                    checked={session.assetId === selectedSession?.assetId}
+                    onChange={() => setSelectedSession(session)}
+                  />
+                </td>
+                <td>{session.assetPath.split("/")[1]}</td>
+                <td>{session.numAcquisitions}</td>
+                <td>
+                  <a href={neurosiftLinkForAsset(session.assetUrl)}>
+                    View in Neurosift
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!loading && truncated ? (
+          <div>
+            <Hyperlink
+              onClick={() => {
+                setMaxToLoad((v) => v + 20);
+              }}
+            >
+              Show more...
+            </Hyperlink>
+          </div>
+        ) : (
+          <span />
+        )}
+      </div>
+    </IfHasBeenVisible>
   );
 };
 

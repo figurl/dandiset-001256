@@ -10,6 +10,7 @@ import { AnnotationsContext } from "./App";
 import { MainContext } from "./MainContext";
 import PlayControl from "./PlayControl";
 import { getTwoPhotonSeriesPath } from "./util";
+import IfHasBeenVisible from "../neurosift-lib/viewPlugins/PSTH/IfHasBeenVisible";
 
 const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
   const width = useDocumentWidth();
@@ -29,45 +30,48 @@ const AcquisitionTwoPhotonSeriesView: FunctionComponent = () => {
   if (!nwbFile) {
     return <div>No NWB file selected</div>;
   }
+  const height = 600;
   return (
-    <Layout1 width={width} height={600}>
-      {/* Toolbar */}
-      <div>
-        <PlayControl
-          playing={playing}
-          setPlaying={setPlaying}
-          playbackRate={playbackRate}
-          setPlaybackRate={setPlaybackRate}
+    <IfHasBeenVisible width={width} height={height}>
+      <Layout1 width={width} height={height}>
+        {/* Toolbar */}
+        <div>
+          <PlayControl
+            playing={playing}
+            setPlaying={setPlaying}
+            playbackRate={playbackRate}
+            setPlaybackRate={setPlaybackRate}
+          />
+        </div>
+        {/* TwoPhotonVideo */}
+        <TwoPhotonSeriesItemView
+          width={0}
+          height={0}
+          path={getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}
+          initialBrightnessFactor={2}
+          showOrientationControls={false}
+          condensed={true}
+          throttleMsec={500}
         />
-      </div>
-      {/* TwoPhotonVideo */}
-      <TwoPhotonSeriesItemView
-        width={0}
-        height={0}
-        path={getTwoPhotonSeriesPath(acquisitionId, { motionCorrected })}
-        initialBrightnessFactor={2}
-        showOrientationControls={false}
-        condensed={true}
-        throttleMsec={500}
-      />
-      {/* RoiTimeseriesPlot */}
-      <NeurodataTimeSeriesItemView
-        width={width}
-        height={0}
-        path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
-        initialShowAllChannels={roiNumber === "all"}
-        initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
-        initialVisibleStartChannel={
-          roiNumber === "all" ? undefined : roiNumber - 1
-        }
-        initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
-        annotations={annotations}
-        yLabel="Fluorescence"
-        showTimeseriesToolbar={false}
-        showTimeseriesNavbar={false}
-        showBottomToolbar={false}
-      />
-    </Layout1>
+        {/* RoiTimeseriesPlot */}
+        <NeurodataTimeSeriesItemView
+          width={width}
+          height={0}
+          path={`/processing/ophys/Fluorescence/RoiResponseSeries_${acquisitionId}`}
+          initialShowAllChannels={roiNumber === "all"}
+          initialNumVisibleChannels={roiNumber === "all" ? undefined : 1}
+          initialVisibleStartChannel={
+            roiNumber === "all" ? undefined : roiNumber - 1
+          }
+          initialChannelSeparation={roiNumber === "all" ? channelSeparation : 0}
+          annotations={annotations}
+          yLabel="Fluorescence"
+          showTimeseriesToolbar={false}
+          showTimeseriesNavbar={false}
+          showBottomToolbar={false}
+        />
+      </Layout1>
+    </IfHasBeenVisible>
   );
 };
 

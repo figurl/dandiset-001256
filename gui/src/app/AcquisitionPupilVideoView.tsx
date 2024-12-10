@@ -10,6 +10,7 @@ import NeurodataTimeSeriesItemView from "../neurosift-lib/viewPlugins/TimeSeries
 import { AnnotationsContext } from "./App";
 import { MainContext } from "./MainContext";
 import PlayControl from "./PlayControl";
+import IfHasBeenVisible from "../neurosift-lib/viewPlugins/PSTH/IfHasBeenVisible";
 
 const AcquisitionPupilVideoView: FunctionComponent = () => {
   const width = useDocumentWidth();
@@ -21,39 +22,42 @@ const AcquisitionPupilVideoView: FunctionComponent = () => {
   if (!nwbFile) {
     return <div>No NWB file selected</div>;
   }
+  const height = 600;
   return (
-    <Layout1 width={width} height={600}>
-      {/* Toolbar */}
-      <div>
-        <PlayControl
-          playing={playing}
-          setPlaying={setPlaying}
-          playbackRate={playbackRate}
-          setPlaybackRate={setPlaybackRate}
+    <IfHasBeenVisible width={width} height={height}>
+      <Layout1 width={width} height={height}>
+        {/* Toolbar */}
+        <div>
+          <PlayControl
+            playing={playing}
+            setPlaying={setPlaying}
+            playbackRate={playbackRate}
+            setPlaybackRate={setPlaybackRate}
+          />
+        </div>
+        {/* PupilVideo */}
+        <ImageSeriesItemView
+          width={0}
+          height={400}
+          path={`/processing/behavior/pupil_video_${acquisitionId}`}
+          initialBrightnessFactor={2}
+          showOrientationControls={false}
+          condensed={true}
+          throttleMsec={500}
         />
-      </div>
-      {/* PupilVideo */}
-      <ImageSeriesItemView
-        width={0}
-        height={400}
-        path={`/processing/behavior/pupil_video_${acquisitionId}`}
-        initialBrightnessFactor={2}
-        showOrientationControls={false}
-        condensed={true}
-        throttleMsec={500}
-      />
-      {/* PupilRadiusTimeseriesPlot */}
-      <NeurodataTimeSeriesItemView
-        width={0}
-        height={0}
-        path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
-        annotations={annotations}
-        yLabel="Pupil radius"
-        showTimeseriesToolbar={true}
-        showTimeseriesNavbar={true}
-        showBottomToolbar={false}
-      />
-    </Layout1>
+        {/* PupilRadiusTimeseriesPlot */}
+        <NeurodataTimeSeriesItemView
+          width={0}
+          height={0}
+          path={`/processing/behavior/PupilTracking/pupil_radius_${acquisitionId}`}
+          annotations={annotations}
+          yLabel="Pupil radius"
+          showTimeseriesToolbar={true}
+          showTimeseriesNavbar={true}
+          showBottomToolbar={false}
+        />
+      </Layout1>
+    </IfHasBeenVisible>
   );
 };
 

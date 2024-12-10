@@ -1,4 +1,10 @@
-import { FunctionComponent, useEffect, useMemo, useState } from "react";
+import {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Roi } from "./RoiView";
 
 type RoiViewWidgetProps = {
@@ -9,6 +15,7 @@ type RoiViewWidgetProps = {
   rois: Roi[] | undefined;
   referenceImage: number[][] | undefined;
   selectedRoi: "all" | number;
+  onClickRoi: (roiNumber: number | "all") => void;
 };
 
 const v1 = 255;
@@ -29,6 +36,14 @@ const distinctColors = [
   [_, v2, v1],
 ];
 
+type RegionForMouse = {
+  pixelX: number;
+  pixelY: number;
+  pixelWidth: number;
+  pixelHeight: number;
+  roiNumber: number;
+};
+
 const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
   width,
   height,
@@ -37,6 +52,7 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
   N1,
   N2,
   selectedRoi,
+  onClickRoi,
 }) => {
   const [canvasElement, setCanvasElement] = useState<
     HTMLCanvasElement | undefined
@@ -56,7 +72,14 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
     if (!referenceImage) return 0;
     return computeMaxVal(referenceImage);
   }, [referenceImage]);
+  const [regionsForMouse, setRegionsForMouse] = useState<
+    RegionForMouse[] | undefined
+  >(undefined);
+  const [hoveredRoiNumber, setHoveredRoiNumber] = useState<number | undefined>(
+    undefined,
+  );
   useEffect(() => {
+    setRegionsForMouse(undefined);
     if (!canvasElement) return;
     const ctx = canvasElement.getContext("2d");
     if (!ctx) return;
@@ -86,6 +109,7 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
         ctx.drawImage(offscreenCanvas, 0, 0, N1 * scale, N2 * scale);
       }
     }
+    const r4m: RegionForMouse[] = [];
     for (const roi of rois || []) {
       if (selectedRoi !== "all" && roi.roiNumber !== selectedRoi) {
         continue;
@@ -105,12 +129,20 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
         N2,
         planeTransform,
       );
+      r4m.push({
+        pixelX: x0 * scale,
+        pixelY: y0 * scale,
+        pixelWidth: w0 * scale,
+        pixelHeight: h0 * scale,
+        roiNumber: roi.roiNumber,
+      });
       const maxval = computeMaxVal(data);
       const imageData = ctx.createImageData(w0, h0);
-      const dataBoundary = getBoundary(data);
+      const dataToDraw =
+        roi.roiNumber === hoveredRoiNumber ? data : getBoundary(data);
       for (let i = 0; i < w0; i++) {
         for (let j = 0; j < h0; j++) {
-          let v = dataBoundary[i][j] / (maxval || 1);
+          let v = dataToDraw[i][j] / (maxval || 1);
           if (isNaN(v)) v = 0;
           const index = (j * w0 + i) * 4;
           imageData.data[index + 0] = color[0] * v;
@@ -134,6 +166,7 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
         );
       }
     }
+    setRegionsForMouse(r4m);
   }, [
     canvasElement,
     rois,
@@ -143,7 +176,45 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
     referenceImageMaxVal,
     referenceImage,
     selectedRoi,
+    hoveredRoiNumber,
   ]);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!regionsForMouse) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      for (const region of regionsForMouse) {
+        if (
+          x >= region.pixelX &&
+          x <= region.pixelX + region.pixelWidth &&
+          y >= region.pixelY &&
+          y <= region.pixelY + region.pixelHeight
+        ) {
+          setHoveredRoiNumber(region.roiNumber);
+          return;
+        }
+      }
+      setHoveredRoiNumber(undefined);
+    },
+    [regionsForMouse],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredRoiNumber(undefined);
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    if (hoveredRoiNumber === undefined) {
+      onClickRoi("all");
+    } else {
+      onClickRoi(hoveredRoiNumber);
+    }
+  }, [hoveredRoiNumber, onClickRoi]);
+
   if (N1 === 0 || N2 === 0) {
     return (
       <div style={{ position: "relative", width, height, fontSize: 12 }} />
@@ -159,6 +230,9 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
           left: offsetX,
           top: offsetY,
         }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
       >
         <canvas
           ref={(elmt) => elmt && setCanvasElement(elmt)}
@@ -177,6 +251,9 @@ const RoiViewWidget: FunctionComponent<RoiViewWidgetProps> = ({
         }}
       >
         {status}
+        {hoveredRoiNumber && (
+          <span>&nbsp;&nbsp;&nbsp;Hovered ROI: {hoveredRoiNumber}</span>
+        )}
       </div>
     </div>
   );

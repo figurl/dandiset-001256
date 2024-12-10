@@ -1,5 +1,6 @@
 import {
   FunctionComponent,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -14,6 +15,7 @@ import {
 import { MainContext } from "../MainContext";
 import RoiViewWidget from "./RoiViewWidget";
 import { getTwoPhotonSeriesPath } from "../util";
+import IfHasBeenVisible from "../../neurosift-lib/viewPlugins/PSTH/IfHasBeenVisible";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type RoiViewProps = {
@@ -23,8 +25,13 @@ type RoiViewProps = {
 const RoiView: FunctionComponent<RoiViewProps> = () => {
   const nwbFile = useNwbFileSafe();
   const { rois, N1, N2 } = useRois(nwbFile);
-  const { selectedSession, roiNumber, acquisitionId, motionCorrected } =
-    useContext(MainContext)!;
+  const {
+    selectedSession,
+    roiNumber,
+    setRoiNumber,
+    acquisitionId,
+    motionCorrected,
+  } = useContext(MainContext)!;
   const { currentTime } = useTimeseriesSelection();
   const referenceImage = useReferenceImage(
     nwbFile,
@@ -34,6 +41,12 @@ const RoiView: FunctionComponent<RoiViewProps> = () => {
   );
   const width = 400;
   const height = 400;
+  const handleClickRoi = useCallback(
+    (roiNumber: number | "all") => {
+      setRoiNumber(roiNumber);
+    },
+    [setRoiNumber],
+  );
   if (!selectedSession) {
     return (
       <div
@@ -63,15 +76,18 @@ const RoiView: FunctionComponent<RoiViewProps> = () => {
     );
   }
   return (
-    <RoiViewWidget
-      width={width}
-      height={height}
-      rois={rois}
-      referenceImage={referenceImage}
-      N1={N1}
-      N2={N2}
-      selectedRoi={roiNumber}
-    />
+    <IfHasBeenVisible width={width} height={height}>
+      <RoiViewWidget
+        width={width}
+        height={height}
+        rois={rois}
+        referenceImage={referenceImage}
+        N1={N1}
+        N2={N2}
+        selectedRoi={roiNumber}
+        onClickRoi={handleClickRoi}
+      />
+    </IfHasBeenVisible>
   );
 };
 
