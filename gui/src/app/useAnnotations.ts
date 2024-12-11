@@ -42,15 +42,12 @@ export const useAnnotations = (acquisitionId: string) => {
     // We are hard-coding this for now because parsing these fields is confusing
     const lowContrast = stimInfo.pulseNames.includes("50-60dB");
     const highContrast = stimInfo.pulseNames.includes("40-70dB");
-    console.log("---- xyz", lowContrast, highContrast, stimInfo.pulseNames);
     if (lowContrast || highContrast) {
-      console.log("--- a1");
       if (
         stimInfo.pulseNames.includes("dB_8s_sin") &&
         stimInfo.pulseSets ===
           "PC_PTinContrast_5-52kHz_25msDRC_10000Hz70dB_0s_delay"
       ) {
-        console.log("--- a2");
         return [
           {
             // DRC for 2s
@@ -111,7 +108,6 @@ export const useAnnotations = (acquisitionId: string) => {
       return [];
     }
   }, [stimInfo]);
-  console.log("---------------- annotations", annotations);
   return annotations;
 };
 

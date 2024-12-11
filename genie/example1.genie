@@ -1,0 +1,45 @@
+// system ../python/dandiset_001256_interface_usage.py
+
+You are going to create a genie_output directory. First clear the directory, but do not remove genie_output/.git
+
+The directory will have the following contents:
+
+index.md
+sessions/
+    session_id/
+        001.png
+        002.png
+        ...
+    session_id/
+        001.png
+        002.png
+        ...
+
+For a session path of sub-AA0336/sub-AA0336_ses-20210623T170043_behavior+image+ophys.nwb, the session ID would be sub-AA0336_ses-20210623T170043.
+
+The index.md will have some headings and links to the plots in the sessions directory, as described below.
+
+For each plot below, rather than showing the plot, write it to a .png. They should be written to .png files as approprate.
+
+Don't include any additional text in the markdown document (unless specified below) - the images should be self-explanatory.
+
+Each plot image should have a relevant title, labels, etc, that sufficiently describes it.
+Don't include the session ID or session path in the plot titles.
+
+The main heading is "Dandiset 001256"
+
+For each session in the Dandiset:
+* Make a heading for the session, equal to the session ID.
+* Plot a single frame of the pupil video
+* Plot a single frame of the two-photon video
+* Plot the average pupil response across all acquisitions.
+* Plot all pupil radius acquisitions aligned to start time
+* Plot the ROI responses for the first acquisition for all ROIs on the same plot.
+
+Print the progress to the console, so the user knows what is happening.
+
+At the end of every session, write the index.md, so the user may see the progress.
+
+Note: some of the pupil_radius_xxx arrays for certain acquisitions may be missing. Use a try/except block to catch the error and continue to the next acquisition.
+
+Note: the roi response series has different timestamps for different acquisitions within the same session.

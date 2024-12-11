@@ -28,8 +28,6 @@ import { Session } from "./SessionsTable";
 
 nunjucks.configure({ autoescape: false });
 
-const defaultNwbUrl =
-  "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/";
 const dandisetId = "001256";
 
 export const AnnotationsContext = createContext<
@@ -50,7 +48,23 @@ const AppChild0: FunctionComponent = () => {
   const p = queryParameters.get("p");
   const { width, height } = useWindowDimensions();
   if (p === "/chat") {
-    return <ChatPage width={width} height={height} nwbUrl={defaultNwbUrl} />;
+    const nwbUrl = queryParameters.get("nwbUrl");
+    if (!nwbUrl) {
+      return (
+        <div>
+          nwbUrl query parameter is required for chat page.
+        </div>
+      )
+    }
+    const nwbPath = queryParameters.get("nwbPath");
+    if (!nwbPath) {
+      return (
+        <div>
+          nwbPath query parameter is required for chat page.
+        </div>
+      )
+    }
+    return <ChatPage width={width} height={height} nwbUrl={nwbUrl} nwbPath={nwbPath} />;
   }
   return <AppChild1 />;
 };
@@ -113,7 +127,10 @@ const AppChild2: FunctionComponent = () => {
     } else {
       mdTemplate += "\n" + "Select a session above to view data.";
     }
-    const data = {};
+    const data = {
+      nwbUrl: selectedSession?.assetUrl,
+      nwbPath: selectedSession?.assetPath
+    };
     return nunjucks.renderString(mdTemplate, data);
   }, [selectedSession]);
   if (width < 800 && !okayToViewSmallScreen) {

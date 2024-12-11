@@ -1,0 +1,1 @@
+geniescript run example1.genie

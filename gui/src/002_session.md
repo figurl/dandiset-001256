@@ -31,3 +31,5 @@ This video captures the pupil of the mouse's eye. Use the range slider to adjust
 Two-photon imaging video which records calcium activity in the primary auditory cortex. There is one cell that is active during the stimulus, and we'll point that out in future iterations of the interface.
 
 ---
+
+[Open chat for this session](https://figurl.github.io/dandiset-001256/?p=/chat&nwbUrl={{ nwbUrl }}&nwbPath={{ nwbPath }})
