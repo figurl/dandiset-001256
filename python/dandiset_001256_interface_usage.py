@@ -11,7 +11,8 @@ sessions = info['sessions']
 for session in sessions:
     nwb_url = session['asset_url']
     nwb_path = session['asset_path']
-    print(f"Session: {nwb_path} - {nwb_url}")
+    session_id = session['session_id']
+    print(f"Session: {session_id} - {nwb_url}")
 
 # %%
 

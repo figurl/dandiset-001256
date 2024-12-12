@@ -18,9 +18,15 @@ def get_dandiset_info():
         sessions.append({
             'asset_path': r['path'],
             'asset_id': asset_id,
-            'asset_url': asset_url
+            'asset_url': asset_url,
+            'session_id': _session_id_from_asset_path(r['path']),
         })
 
     return {
         'sessions': sessions
     }
+
+
+def _session_id_from_asset_path(asset_path):
+    # "sub-AA03008/sub-AA0308_ses-20210414T173129_behavior+image+ophys.nwb" -> "sub-AA0308_ses-20210414T173129"
+    return '_'.join(asset_path.split('/')[1].split('_')[:2])

@@ -1,33 +1,39 @@
 """
-system hash: 6f84b1dc8a44e3d07bdc6b8735601f95c358bc4d
+system hash: 690fbcc140f83b0896fcb2ba5a53ac8c3a452668
 
-You are going to create a genie_output directory. First clear the directory.
+You are going to create a bunch of plot images, upload to the server, and create a file ./genie_output/index.md that links to the images.
 
-The directory will have the following contents:
+Start by removing ./genie_output/index.md and creating the ./genie_output directory if needed.
 
-index.md
-sessions/
-    session_id/
-        001.png
-        002.png
+The files uploaded to the server will be as following
+
+https://lindi.neurosift.org/tmp/dandi/dandiset-001256/genie/
+    sessions/
+        sub-AA0336_ses-20210623T170043/  # This is the session ID
+            pupil_video_single_frame.png
+            two_photon_video_single_frame.png
+            average_pupil_response.png
+            pupil_radius_acquisitions_aligned.png
+            roi_responses_first_acquisition.png
+        sub-AA0308_ses-20210414T173129/
+            ...
         ...
-    session_id/
-        001.png
-        002.png
-        ...
 
-For a session path of sub-AA0336/sub-AA0336_ses-20210623T170043_behavior+image+ophys.nwb, the session ID would be sub-AA0336_ses-20210623T170043.
+The index.md will have some headings and links to the plots that are uploaded to the server
 
-The index.md will have some headings and links to the plots in the sessions directory, as described below.
+For each plot below, rather than showing the plot, create data for a .png, and upload to the appropriate location on the server.
 
-For each plot below, rather than showing the plot, write it to a .png. They should be written to .png files as approprate.
+The height of each plot should be 400 pixels and the width should be at most 600 pixels. So like this:
+plt.figure(figsize=(6, 4))
+But it should be square for the video frames, like this:
+plt.figure(figsize=(6, 6))
 
 Don't include any additional text in the markdown document (unless specified below) - the images should be self-explanatory.
 
 Each plot image should have a relevant title, labels, etc, that sufficiently describes it.
 Don't include the session ID or session path in the plot titles.
 
-The main heading is "Dandiset 001256"
+The main heading of the markdown should be "Dandiset 001256"
 
 For each session in the Dandiset:
 * Make a heading for the session, equal to the session ID.
@@ -37,14 +43,19 @@ For each session in the Dandiset:
 * Plot all pupil radius acquisitions aligned to start time
 * Plot the ROI responses for the first acquisition for all ROIs on the same plot.
 
+Images should be side by side, not stacked. That means putting them in a div with display flex, as described in the system instructions. Use cache busting as shown with a short random string that is generated at the beginning of the script.
+
+All images should be scaled to have a width of 300 pixels, while maintaining the aspect ratio.
+
 Print the progress to the console, so the user knows what is happening.
 
 At the end of every session, write the index.md, so the user may see the progress.
 
-Note: some of the pupil_radius_xxx arrays for certain acquisitions may be missing. Use a try/except block to catch the error and continue to the next acquisition.
+Important: some of the pupil_radius_xxx arrays for certain acquisitions may be missing. Use a try/except block to catch the error and continue to the next acquisition.
 
-Note: the roi response series has different timestamps for different acquisitions within the same session.
+Important: the roi response series has different timestamps for different acquisitions within the same session.
 
+Important: Do not show legends on the plots that involve multiple ROIs or multiple acquisitions. It's too cluttered.
 
 """
 
@@ -52,145 +63,154 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from dandiset_001256_interface import load_session, get_dandiset_info
+from helpers.upload_file import upload_file_data
+from io import BytesIO
+import random
+import string
 
-def ensure_dir(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+# Generate a cache buster string
+def generate_cache_buster(length=5):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
-def generate_plots_for_session(session_id, nwb_url, output_dir):
-    print(f"Generating plots for session {session_id}...")
-    
-    session_output_dir = os.path.join(output_dir, session_id)
-    ensure_dir(session_output_dir)
+# Function to upload a figure to the server
+def upload_figure(fig, url):
+    buf = BytesIO()
+    fig.savefig(buf, format="png", bbox_inches='tight', pad_inches=0)
+    buf.seek(0)
+    binary_data = buf.read()
+    upload_file_data(url, binary_data)
 
+# Prepare directories and index file
+output_dir = "./genie_output"
+index_path = os.path.join(output_dir, "index.md")
+if os.path.exists(index_path):
+    os.remove(index_path)
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# Fetch information about the Dandiset and its sessions
+info = get_dandiset_info()
+sessions = info['sessions']
+
+# Create the main heading for the index file
+with open(index_path, 'a') as md_file:
+    md_file.write("# Dandiset 001256\n\n")
+
+# Iterate through each session
+for session in sessions:
+    session_id = session['session_id']
+    print(f"Processing session: {session_id}")
+
+    nwb_url = session['asset_url']
     S = load_session(nwb_url=nwb_url)
 
+    acquisition_names = S.get_acquisition_names()
+
+    # Prepare paths and headings
+    session_path = f"dandi/dandiset-001256/genie/sessions/{session_id}"
+    session_heading = f"## {session_id}\n\n"
+    
+    with open(index_path, 'a') as md_file:
+        md_file.write(session_heading)
+
+    # Create plots and upload them
+    plot_urls = []
+    
+    # Plot a single frame of the pupil video
     try:
         pupil_video = S.get_pupil_video("000")
-        frame_index = 10
-        frame = pupil_video.get_frame(frame_index)
+        frame = pupil_video.get_frame(10)
+        plt.figure(figsize=(6, 6))
         plt.imshow(frame, cmap='gray')
+        plt.title("Pupil Video Frame")
         plt.axis('off')
-        plt.title("Pupil Video Frame at Index 10")
-        plt.savefig(os.path.join(session_output_dir, "001.png"))
-        plt.close()
-    except Exception as e:
-        print(f"Error in pupil video plot for session {session_id}: {e}")
+        cache_buster = generate_cache_buster()
+        pupil_video_url = f"https://lindi.neurosift.org/tmp/{session_path}/pupil_video_single_frame.png?cb={cache_buster}"
+        plot_urls.append(pupil_video_url)
+        upload_figure(plt, pupil_video_url)
+        plt.clf()
 
-    try:
+        # Plot a single frame of the two-photon video
         two_photon_series = S.get_two_photon_series("000")
-        frame = two_photon_series.get_frame(frame_index)
+        frame = two_photon_series.get_frame(10)
+        plt.figure(figsize=(6, 6))
         plt.imshow(frame, cmap='gray')
+        plt.title("Two-photon Video Frame")
         plt.axis('off')
-        plt.title("Two-Photon Series Frame at Index 10")
-        plt.savefig(os.path.join(session_output_dir, "002.png"))
-        plt.close()
-    except Exception as e:
-        print(f"Error in two-photon video plot for session {session_id}: {e}")
+        cache_buster = generate_cache_buster()
+        two_photon_url = f"https://lindi.neurosift.org/tmp/{session_path}/two_photon_video_single_frame.png?cb={cache_buster}"
+        plot_urls.append(two_photon_url)
+        upload_figure(plt, two_photon_url)
+        plt.clf()
 
-    try:
-        acquisition_names = S.get_acquisition_names()
-
-        first_pupil_radius = S.get_pupil_radius(acquisition_names[0])
-        first_timestamps = first_pupil_radius.get_timestamps()
-
+        # Plot the average pupil response across all acquisitions
         pupil_radius_data = []
+        first_timestamps = None
         for acq_name in acquisition_names:
-            pupil_radius = S.get_pupil_radius(acq_name)
-            pupil_radius_data.append(np.interp(first_timestamps, pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data()))
-
+            try:
+                pupil_radius = S.get_pupil_radius(acq_name)
+                if first_timestamps is None:
+                    first_timestamps = pupil_radius.get_timestamps()
+                pupil_radius_data.append(np.interp(first_timestamps, pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data()))
+            except Exception as e:
+                continue
+                
         pupil_radius_data = np.array(pupil_radius_data)
         mean_pupil_radius = np.nanmean(pupil_radius_data, axis=0)
-
-        plt.figure(figsize=(8, 6))
-        plt.plot(first_timestamps - first_pupil_radius.starting_time, mean_pupil_radius)
+        plt.figure(figsize=(6, 4))
+        plt.plot(first_timestamps - first_timestamps[0], mean_pupil_radius)
+        plt.title("Average Pupil Response")
         plt.xlabel("Time (sec)")
-        plt.ylabel("Average pupil radius (pixels)")
-        plt.title("Average Pupil Radius Across Acquisitions")
+        plt.ylabel("Pupil Radius (pixels)")
         plt.grid(axis='x')
-        plt.savefig(os.path.join(session_output_dir, "003.png"))
-        plt.close()
+        cache_buster = generate_cache_buster()
+        average_pupil_url = f"https://lindi.neurosift.org/tmp/{session_path}/average_pupil_response.png?cb={cache_buster}"
+        plot_urls.append(average_pupil_url)
+        upload_figure(plt, average_pupil_url)
+        plt.clf()
 
-    except Exception as e:
-        print(f"Error in average pupil radius plot for session {session_id}: {e}")
-
-    try:
-        plt.figure(figsize=(8, 6))
+        # Plot all pupil radius acquisitions aligned to start time
+        plt.figure(figsize=(6, 4))
         for acq_name in acquisition_names:
-            pupil_radius = S.get_pupil_radius(acq_name)
-            plt.plot(pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data(), label=acq_name)
-
+            try:
+                pupil_radius = S.get_pupil_radius(acq_name)
+                plt.plot(pupil_radius.get_timestamps() - pupil_radius.starting_time, pupil_radius.get_data())
+            except Exception as e:
+                continue
+        plt.title("Pupil Radius Aligned to Start Time")
         plt.xlabel("Time (sec)")
-        plt.ylabel("Pupil radius (pixels)")
-        plt.title("All Pupil Radius Data Aligned to Start Time")
+        plt.ylabel("Pupil Radius (pixels)")
         plt.grid(axis='x')
-        plt.savefig(os.path.join(session_output_dir, "004.png"))
-        plt.close()
+        cache_buster = generate_cache_buster()
+        pupil_radius_aligned_url = f"https://lindi.neurosift.org/tmp/{session_path}/pupil_radius_acquisitions_aligned.png?cb={cache_buster}"
+        plot_urls.append(pupil_radius_aligned_url)
+        upload_figure(plt, pupil_radius_aligned_url)
+        plt.clf()
 
-    except Exception as e:
-        print(f"Error in pupil radius aligned plot for session {session_id}: {e}")
-
-    try:
-        roi_response_series = S.get_roi_response_series("000")
+        # Plot the ROI responses for the first acquisition
+        roi_response_series = S.get_roi_response_series(acquisition_names[0])
         timestamps = roi_response_series.get_timestamps() - roi_response_series.starting_time
         roi_data = roi_response_series.get_data()
-
-        plt.figure(figsize=(8, 6))
-        for roi in range(roi_data.shape[1]):
-            plt.plot(timestamps, roi_data[:, roi], label=f"ROI {roi+1}")
-        
+        plt.figure(figsize=(6, 4))
+        for roi_index in range(roi_data.shape[1]):
+            plt.plot(timestamps, roi_data[:, roi_index])
+        plt.title("ROI Responses First Acquisition")
         plt.xlabel("Time (sec)")
         plt.ylabel("Fluorescence Intensity")
-        plt.title("ROI Responses for First Acquisition")
-        plt.savefig(os.path.join(session_output_dir, "005.png"))
-        plt.close()
+        cache_buster = generate_cache_buster()
+        roi_response_url = f"https://lindi.neurosift.org/tmp/{session_path}/roi_responses_first_acquisition.png?cb={cache_buster}"
+        plot_urls.append(roi_response_url)
+        upload_figure(plt, roi_response_url)
+        plt.clf()
         
     except Exception as e:
-        print(f"Error in ROI response plot for session {session_id}: {e}")
+        print(f"Error processing session {session_id}: {e}")
 
-def update_index_md(output_dir, sessions_info):
-    index_path = os.path.join(output_dir, "index.md")
-    with open(index_path, 'w') as index_md:
-        index_md.write("# Dandiset 001256\n\n")
-        for session in sessions_info:
-            session_id = session['asset_path'].split('/')[-1].replace('.nwb', '')
-            index_md.write(f"## {session_id}\n")
-            index_md.write(f"- ![{session_id} pupil video](sessions/{session_id}/001.png)\n")
-            index_md.write(f"- ![{session_id} two-photon video](sessions/{session_id}/002.png)\n")
-            index_md.write(f"- ![{session_id} average pupil response](sessions/{session_id}/003.png)\n")
-            index_md.write(f"- ![{session_id} all pupil radius aligned](sessions/{session_id}/004.png)\n")
-            index_md.write(f"- ![{session_id} ROI responses](sessions/{session_id}/005.png)\n\n")
+    # Write the URLs to the markdown file
+    with open(index_path, 'a') as md_file:
+        md_file.write("<div style=\"display: flex; justify-content: space-between;\">\n")
+        for url in plot_urls:
+            md_file.write(f"  <img src=\"{url}\" alt=\"Image\" width=\"300\" />\n")
+        md_file.write("</div>\n\n")
 
-def main():
-    output_dir = "genie_output"
-    ensure_dir(output_dir)
-    sessions_dir = os.path.join(output_dir, "sessions")
-    ensure_dir(sessions_dir)
-
-    # Clear the sessions directory
-    if os.path.exists(sessions_dir):
-        for session_folder in os.listdir(sessions_dir):
-            session_folder_path = os.path.join(sessions_dir, session_folder)
-            for file in os.listdir(session_folder_path):
-                file_path = os.path.join(session_folder_path, file)
-                os.remove(file_path)
-            os.rmdir(session_folder_path)
-
-    info = get_dandiset_info()
-    sessions = info['sessions']
-
-    # Process each session
-    for session in sessions:
-        session_id = session['asset_path'].split('/')[-1].replace('.nwb', '')
-        nwb_url = session['asset_url']
-        session_output_dir = os.path.join(sessions_dir, session_id)
-        ensure_dir(session_output_dir)
-        
-        generate_plots_for_session(session_id, nwb_url, sessions_dir)
-        update_index_md(output_dir, sessions)
-        print(f"Finished processing session {session_id}.")
-
-    print("All sessions processed.")
-
-if __name__ == "__main__":
-    main()
+print("Processing complete.")

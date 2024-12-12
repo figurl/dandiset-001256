@@ -4,7 +4,7 @@
         {
             "label": "Push Genie Output",
             "type": "shell",
-            "command": "cd genie/genie_output && git add . && git commit -m update && git push",
+            "command": "cd genie/genie_output && git add index.md && git commit -m update && git push",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",
@@ -13,6 +13,16 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "Run Genie",
+            "type": "shell",
+            "command": "cd genie && bash run.sh",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
             }
         }
     ]

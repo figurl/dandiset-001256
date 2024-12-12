@@ -1,32 +1,39 @@
 // system ../python/dandiset_001256_interface_usage.py
+// system ./system.md
 
-You are going to create a genie_output directory. First clear the directory, but do not remove genie_output/.git
+You are going to create a bunch of plot images, upload to the server, and create a file ./genie_output/index.md that links to the images.
 
-The directory will have the following contents:
+Start by removing ./genie_output/index.md and creating the ./genie_output directory if needed.
 
-index.md
-sessions/
-    session_id/
-        001.png
-        002.png
+The files uploaded to the server will be as following
+
+https://lindi.neurosift.org/tmp/dandi/dandiset-001256/genie/
+    sessions/
+        sub-AA0336_ses-20210623T170043/  # This is the session ID
+            pupil_video_single_frame.png
+            two_photon_video_single_frame.png
+            average_pupil_response.png
+            pupil_radius_acquisitions_aligned.png
+            roi_responses_first_acquisition.png
+        sub-AA0308_ses-20210414T173129/
+            ...
         ...
-    session_id/
-        001.png
-        002.png
-        ...
 
-For a session path of sub-AA0336/sub-AA0336_ses-20210623T170043_behavior+image+ophys.nwb, the session ID would be sub-AA0336_ses-20210623T170043.
+The index.md will have some headings and links to the plots that are uploaded to the server
 
-The index.md will have some headings and links to the plots in the sessions directory, as described below.
+For each plot below, rather than showing the plot, create data for a .png, and upload to the appropriate location on the server.
 
-For each plot below, rather than showing the plot, write it to a .png. They should be written to .png files as approprate.
+The height of each plot should be 400 pixels and the width should be at most 600 pixels. So like this:
+plt.figure(figsize=(6, 4))
+But it should be square for the video frames, like this:
+plt.figure(figsize=(6, 6))
 
 Don't include any additional text in the markdown document (unless specified below) - the images should be self-explanatory.
 
 Each plot image should have a relevant title, labels, etc, that sufficiently describes it.
 Don't include the session ID or session path in the plot titles.
 
-The main heading is "Dandiset 001256"
+The main heading of the markdown should be "Dandiset 001256"
 
 For each session in the Dandiset:
 * Make a heading for the session, equal to the session ID.
@@ -36,10 +43,16 @@ For each session in the Dandiset:
 * Plot all pupil radius acquisitions aligned to start time
 * Plot the ROI responses for the first acquisition for all ROIs on the same plot.
 
+Images should be side by side, not stacked. That means putting them in a div with display flex, as described in the system instructions. Use cache busting as shown with a short random string that is generated at the beginning of the script.
+
+All images should be scaled to have a width of 300 pixels, while maintaining the aspect ratio.
+
 Print the progress to the console, so the user knows what is happening.
 
 At the end of every session, write the index.md, so the user may see the progress.
 
-Note: some of the pupil_radius_xxx arrays for certain acquisitions may be missing. Use a try/except block to catch the error and continue to the next acquisition.
+Important: some of the pupil_radius_xxx arrays for certain acquisitions may be missing. Use a try/except block to catch the error and continue to the next acquisition.
 
-Note: the roi response series has different timestamps for different acquisitions within the same session.
+Important: the roi response series has different timestamps for different acquisitions within the same session.
+
+Important: Do not show legends on the plots that involve multiple ROIs or multiple acquisitions. It's too cluttered.
