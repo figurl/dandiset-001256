@@ -120,13 +120,19 @@ const useRois = (nwbFile: RemoteH5FileX | null) => {
       const imageSegmentationGroupPath = "/processing/ophys/ImageSegmentation";
       const g = await nwbFile.getGroup(imageSegmentationGroupPath);
       if (!g) {
-        console.warn(`No ImageSegmentation group found at ${imageSegmentationGroupPath}`);
+        console.warn(
+          `No ImageSegmentation group found at ${imageSegmentationGroupPath}`,
+        );
         return;
       }
       if (canceled) return;
-      const planeSegmentationName = g.subgroups.map((sg) => sg.name).filter(name => (name.startsWith("PlaneSegmentation_")))[0];
+      const planeSegmentationName = g.subgroups
+        .map((sg) => sg.name)
+        .filter((name) => name.startsWith("PlaneSegmentation_"))[0];
       if (!planeSegmentationName) {
-        console.warn(`No PlaneSegmentation found in ${imageSegmentationGroupPath}`);
+        console.warn(
+          `No PlaneSegmentation found in ${imageSegmentationGroupPath}`,
+        );
         return;
       }
       const c = new PlaneSegmentationClient(

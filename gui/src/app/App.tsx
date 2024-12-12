@@ -50,21 +50,20 @@ const AppChild0: FunctionComponent = () => {
   if (p === "/chat") {
     const nwbUrl = queryParameters.get("nwbUrl");
     if (!nwbUrl) {
-      return (
-        <div>
-          nwbUrl query parameter is required for chat page.
-        </div>
-      )
+      return <div>nwbUrl query parameter is required for chat page.</div>;
     }
     const nwbPath = queryParameters.get("nwbPath");
     if (!nwbPath) {
-      return (
-        <div>
-          nwbPath query parameter is required for chat page.
-        </div>
-      )
+      return <div>nwbPath query parameter is required for chat page.</div>;
     }
-    return <ChatPage width={width} height={height} nwbUrl={nwbUrl} nwbPath={nwbPath} />;
+    return (
+      <ChatPage
+        width={width}
+        height={height}
+        nwbUrl={nwbUrl}
+        nwbPath={nwbPath}
+      />
+    );
   }
   return <AppChild1 />;
 };
@@ -129,7 +128,7 @@ const AppChild2: FunctionComponent = () => {
     }
     const data = {
       nwbUrl: selectedSession?.assetUrl,
-      nwbPath: selectedSession?.assetPath
+      nwbPath: selectedSession?.assetPath,
     };
     return nunjucks.renderString(mdTemplate, data);
   }, [selectedSession]);

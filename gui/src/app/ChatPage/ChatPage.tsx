@@ -108,9 +108,7 @@ const ChatPage: FunctionComponent<ChatPageProps> = ({
     return `Explore Dandiset 001256\n\nSession: ${nwbPath}\n\nYou'll need to install [dandiset_001256_interface](https://github.com/figurl/dandiset-001256/tree/main/python/dandiset_001256_interface)`;
   }, [nwbPath]);
   const suggestedQuestions = useMemo(() => {
-    return [
-      "What can you help with?"
-    ];
+    return ["What can you help with?"];
   }, []);
   return (
     <JupyterConnectivityProvider mode="jupyter-server">
@@ -207,7 +205,7 @@ const ChatWindow: FunctionComponent<{
       });
       setAtLeastOneUserMessageSubmitted(true);
     },
-    [chatDispatch]
+    [chatDispatch],
   );
 
   const messages = chat.messages;
@@ -277,7 +275,7 @@ const ChatWindow: FunctionComponent<{
 
   // agent progress
   const [agentProgress, setAgentProgress] = useState<AgentProgressMessage[]>(
-    []
+    [],
   );
   const resetAgentProgress = useCallback(() => {
     setAgentProgress([]);
@@ -292,7 +290,7 @@ const ChatWindow: FunctionComponent<{
         },
       ]);
     },
-    []
+    [],
   );
 
   // last completion failed
@@ -412,7 +410,7 @@ const ChatWindow: FunctionComponent<{
         }, 500);
       });
     },
-    [openConfirmOkayToRun]
+    [openConfirmOkayToRun],
   );
 
   // last message is assistant with tool calls, so we need to run the tool calls
@@ -436,7 +434,7 @@ const ChatWindow: FunctionComponent<{
       const toolCalls: ORToolCall[] = (lastMessage as any).tool_calls;
       const processToolCall = async (tc: any) => {
         const func = tools.find(
-          (x) => x.tool.function.name === tc.function.name
+          (x) => x.tool.function.name === tc.function.name,
         )?.function;
         if (!func) {
           throw Error(`Unexpected. Did not find tool: ${tc.function.name}`);
@@ -447,7 +445,7 @@ const ChatWindow: FunctionComponent<{
         try {
           addAgentProgressMessage(
             "stdout",
-            `Running tool: ${tc.function.name}`
+            `Running tool: ${tc.function.name}`,
           );
           console.info(`Running ${tc.function.name}`);
           const executeScript2: ExecuteScript = async (
@@ -457,13 +455,13 @@ const ChatWindow: FunctionComponent<{
               onStderr?: (message: string) => void;
               onImage?: (format: "png", content: string) => void;
               onFigure?: (
-                a: { format: "plotly"; content: PlotlyContent }
+                a: { format: "plotly"; content: PlotlyContent },
                 //   | {
                 //       format: "neurosift_figure";
                 //       content: NeurosiftFigureContent;
                 //     },
               ) => void;
-            }
+            },
           ) => {
             setScriptExecutionStatus("starting");
             scriptCancelTrigger.current = false;
@@ -471,7 +469,7 @@ const ChatWindow: FunctionComponent<{
             const jcState = loadJupyterConnectivityStateFromLocalStorage(
               jupyterConnectivityState.mode,
               jupyterConnectivityState.extensionKernel,
-              true
+              true,
             );
             const pythonSessionClient = new PythonSessionClient(jcState);
             try {
@@ -556,7 +554,7 @@ const ChatWindow: FunctionComponent<{
         }
         if (canceled) {
           console.warn(
-            `WARNING!!! Hook canceled during tool call ${tc.function.name}`
+            `WARNING!!! Hook canceled during tool call ${tc.function.name}`,
           );
           return;
         }
@@ -577,7 +575,7 @@ const ChatWindow: FunctionComponent<{
       try {
         setPendingToolCalls(toolCalls);
         const toolItems = toolCalls.map((tc) =>
-          tools.find((x) => x.tool.function.name === tc.function.name)
+          tools.find((x) => x.tool.function.name === tc.function.name),
         );
         const serialIndices = toolItems
           .map((x, i) => ({ x, i }))
@@ -593,7 +591,7 @@ const ChatWindow: FunctionComponent<{
         await Promise.all(
           toolCalls
             .filter((_, i) => nonSerialIndices.includes(i))
-            .map(processToolCall)
+            .map(processToolCall),
         );
       } finally {
         runningToolCalls.current = false;
@@ -647,7 +645,7 @@ const ChatWindow: FunctionComponent<{
       });
       setAtLeastOneUserMessageSubmitted(true);
     },
-    [chatDispatch, inputBarEnabled]
+    [chatDispatch, inputBarEnabled],
   );
 
   // layout
@@ -682,7 +680,7 @@ const ChatWindow: FunctionComponent<{
         lastMessage: messages[index - 1] || null,
       });
     },
-    [messages, chatDispatch]
+    [messages, chatDispatch],
   );
 
   // open window to see the data for a tool response
@@ -700,7 +698,7 @@ const ChatWindow: FunctionComponent<{
       setOpenToolResponseData({ toolCall, toolResponse });
       openToolResponse();
     },
-    [openToolResponse]
+    [openToolResponse],
   );
 
   const handleDownloadChat = useCallback(() => {
@@ -750,7 +748,7 @@ const ChatWindow: FunctionComponent<{
       }
       return <img src={src} {...props} />;
     },
-    [chat.files]
+    [chat.files],
   );
 
   const divHandler = useMemo(() => getDivHandler(chat.files), [chat.files]);
@@ -842,7 +840,7 @@ const ChatWindow: FunctionComponent<{
                       <SmallIconButton
                         onClick={() => {
                           const ok = confirm(
-                            "Delete this prompt and all subsequent messages?"
+                            "Delete this prompt and all subsequent messages?",
                           );
                           if (!ok) return;
                           truncateAtMessage(c);

@@ -555,7 +555,8 @@ const drawAnnotations = async (o: {
   ] as [number, number, number][];
   const colorsForLabels: { [key: string]: [number, number, number] } = {};
   for (const aa of annotationsFiltered) {
-    const color = colors[getColorIndexForLabel(aa.data.label + '*1*') % colors.length];
+    const color =
+      colors[getColorIndexForLabel(aa.data.label + "*1*") % colors.length];
     colorsForLabels[aa.data.label] = color;
   }
 
