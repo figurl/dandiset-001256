@@ -32,4 +32,4 @@ Two-photon imaging video which records calcium activity in the primary auditory 
 
 ---
 
-[Open chat for this session](https://figurl.github.io/dandiset-001256/?p=/chat&nwbUrl={{ nwbUrl }}&nwbPath={{ nwbPath }})
+<!-- [Open chat for this session](https://figurl.github.io/dandiset-001256/?p=/chat&nwbUrl={{ nwbUrl }}&nwbPath={{ nwbPath }}) -->
