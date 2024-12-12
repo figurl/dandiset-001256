@@ -1,12 +1,27 @@
 # %%
 import numpy as np
-from dandiset_001256_interface import load_session
+from dandiset_001256_interface import load_session, get_dandiset_info
 
 # %%
-# https://neurosift.app/?p=/nwb&url=https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/&dandisetId=001256&dandisetVersion=0.241120.2150
-nwb_url = "https://api.dandiarchive.org/api/assets/ff8b39ad-ff59-4043-9bd1-9fec403cb51b/download/"
+
+# Get all the sessions in the dandiset
+
+info = get_dandiset_info()
+sessions = info['sessions']
+for session in sessions:
+    nwb_url = session['asset_url']
+    nwb_path = session['asset_path']
+    session_id = session['session_id']
+    print(f"Session: {session_id} - {nwb_url}")
+
+# %%
+
+# For the rest of the examples, we will be using one of the sessions from the dandiset
+nwb_path = sessions[0]['asset_path']
+nwb_url = sessions[0]['asset_url']
 S = load_session(nwb_url=nwb_url)
 
+# %%
 acquisition_names = S.get_acquisition_names()
 print(f"Number of acquisitions: {len(acquisition_names)}")
 print(f"Number of ROIs: {S.get_num_rois()}")
@@ -145,8 +160,8 @@ S = load_session(nwb_url=nwb_url)
 pupil_video = S.get_pupil_video("000")
 frame_index = 10
 frame = pupil_video.get_frame(frame_index)
-# Increase brightness by a factor of 3
-brighter_frame = np.clip(frame * 3, 0, 255)
+# Increase brightness by a factor of 1.5
+brighter_frame = np.clip(np.round(frame * 1.5), 0, 255)
 plt.imshow(brighter_frame, cmap='gray')
 plt.axis('off')
 plt.show()

@@ -35,7 +35,7 @@ import {
 } from "./Chat/codeExecution/JupyterConnectivity";
 import ConfirmOkayToRunWindow from "./Chat/ConfirmOkayToRunWindow";
 import { computeTool } from "./Chat/tools/compute";
-import example_usage_py from "./example_usage.py?raw";
+import example_usage_py from "./dandiset_001256_interface_usage.py?raw";
 import { DivHandlerProps } from "../DivHandler";
 import LazyPlotlyPlot, {
   PlotlyPlotFromUrl,
@@ -105,8 +105,13 @@ const ChatPage: FunctionComponent<ChatPageProps> = ({
     "751";
   const systemMessage1 = getSystemMessage1(nwbUrl);
   const initialMessage = useMemo(() => {
-    return `Explore Dandiset 001256\n\nSession: ${nwbPath}`;
+    return `Explore Dandiset 001256\n\nSession: ${nwbPath}\n\nYou'll need to install [dandiset_001256_interface](https://github.com/figurl/dandiset-001256/tree/main/python/dandiset_001256_interface)`;
   }, [nwbPath]);
+  const suggestedQuestions = useMemo(() => {
+    return [
+      "What can you help with?"
+    ];
+  }, []);
   return (
     <JupyterConnectivityProvider mode="jupyter-server">
       <ChatPageChild
@@ -117,6 +122,7 @@ const ChatPage: FunctionComponent<ChatPageProps> = ({
         openRouterKey={openRouterKey}
         systemMessage1={systemMessage1}
         initialMessage={initialMessage}
+        suggestedQuestions={suggestedQuestions}
       />
     </JupyterConnectivityProvider>
   );
@@ -130,6 +136,7 @@ type ChatPageChildProps = {
   openRouterKey: string | null;
   systemMessage1: string;
   initialMessage: string;
+  suggestedQuestions?: string[];
 };
 
 const ChatPageChild: FunctionComponent<ChatPageChildProps> = ({
@@ -140,6 +147,7 @@ const ChatPageChild: FunctionComponent<ChatPageChildProps> = ({
   openRouterKey,
   systemMessage1,
   initialMessage,
+  suggestedQuestions = [],
 }) => {
   // define the tools
   const tools: ToolItem[] = useMemo(() => {
@@ -159,6 +167,7 @@ const ChatPageChild: FunctionComponent<ChatPageChildProps> = ({
       systemMessage={systemMessage}
       tools={tools}
       initialMessage={initialMessage}
+      suggestedQuestions={suggestedQuestions}
     />
   );
 };
@@ -172,6 +181,7 @@ const ChatWindow: FunctionComponent<{
   systemMessage: string;
   tools: ToolItem[];
   initialMessage: string;
+  suggestedQuestions?: string[];
 }> = ({
   width,
   height,
@@ -181,6 +191,7 @@ const ChatWindow: FunctionComponent<{
   systemMessage,
   tools,
   initialMessage,
+  suggestedQuestions = [],
 }) => {
   const inputBarHeight = 30;
   const settingsBarHeight = 20;
@@ -625,10 +636,6 @@ const ChatWindow: FunctionComponent<{
     return !lastMessageIsUserOrTool && !lastMessageIsToolCalls;
   }, [lastMessageIsUserOrTool, lastMessageIsToolCalls]);
 
-  // suggested questions depending on the context
-  const suggestedQuestions = useMemo(() => {
-    return [];
-  }, []);
   const handleClickSuggestedQuestion = useCallback(
     (question: string) => {
       if (!inputBarEnabled) {
@@ -789,11 +796,11 @@ const ChatWindow: FunctionComponent<{
                       marginLeft: 0,
                       marginRight: 5,
                       cursor: inputBarEnabled ? "pointer" : undefined,
-                      color: inputBarEnabled ? "#aaf" : "lightgray",
+                      color: inputBarEnabled ? "#55f" : "lightgray",
                     }}
                     onClick={() => handleClickSuggestedQuestion(question)}
                   >
-                    {question}
+                    Ask: {question}
                   </span>
                 </span>
               ))}
