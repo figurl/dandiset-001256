@@ -14,21 +14,26 @@
 
 <div class="acquisition-timeseries-view"></div>
 
-**Top plot**: Shows the pupil diameter over time, derived from the video.
+**Top plot**: Shows the pre-processed pupil diameter over time, derived from video of the animal's right eye. The diameter is obtained from a least squares circle fit to dots fitted to the pupil perimeter using a DeepLabCut convolutional neural network model.
 
-**Bottom plot**: Displays the response time series for the selected ROI(s).
+**Bottom plot**: Displays the average raw fluorescence time series within the selected ROI(s) derived from the two-photon image series.
+
+**Highlighting**: Sound stimulation is annotated with purple and yellow highlighting. Stimulation duration and labels are derived from the pulseNames, pulseSets, and stimDelay columns from the stim param table row corresponding to the selected acquisition (path in .nwb: `/stimulus/presentation/stim param table`)
+
+
+
 
 ---
 
 <div class="acquisition-pupil-video-view"></div>
 
-This video captures the pupil of the mouse's eye. Use the range slider to adjust brightness and contrast or use the arrows to step through frames.
+This video captures the pupil of the mouse's right eye. Use the range slider to adjust brightness and contrast. Use the arrows to step through frames.
 
 ---
 
 <div class="acquisition-two-photon-series-view"></div>
 
-Two-photon imaging video which records calcium activity in the primary auditory cortex.
+Two-photon image series that records calcium activity in the primary auditory cortex.
 
 ---
 
